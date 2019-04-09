@@ -1,6 +1,6 @@
 open ANSITerminal
 
-let play_game =
+let play_game ()=
   print_endline "Hi"
 
 let main () = 
@@ -8,6 +8,6 @@ let main () =
   print_string[red] "> ";
   match read_line () with
   | exception End_of_file -> ()
-  | x -> play_game 
+  | x -> play_game ()
 
 let () = main ()
