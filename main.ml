@@ -3,12 +3,12 @@ open ANSITerminal
 (*outputs a list of lists of the form [y, x1, x2] ordered by y (greatest to least).
   y is a row that the snake appears on, x1 is the leftmost pixel and x2 is the 
   rightmost pixel of the snake in that row*)
-let make_snake = 
+(*let make_snake = 
   failwith "unimplemented"
 
 let make_apple = 
   failwith "unimplemented"
-
+*)
 (*returns a string of length num filled with whitespace*)  
 let rec whitespace num = 
   if num == 1 then " " 
@@ -63,29 +63,30 @@ let rec draw_internal st w l snake apple =
         else 
           "|" ^ (whitespace (snake_x1-1)) ^ (draw_snake_seg len) ^ (whitespace (fst(apple)-snake_x2-1)) 
           ^ (draw_apple) ^ (whitespace (w-fst(apple))) ^ "|"
-  in 
+    in 
 
-  let next_snake = match snake with
+  let next_snake = 
+    match snake with
     | [] -> []
     | h :: t -> if check_snake l snake then t else snake in
 
-  if l == 1 then (print_endline row; st) (*for some reason this never triggers*)
-  else print_endline row; draw_internal st w (l-1) next_snake apple
+  if l == 1 then (print_endline row; st; print_endline) (*for some reason this never triggers*)
+  else (print_endline row; draw_internal st w (l-1) next_snake apple)
 
-let rec draw_vert_edge w = 
+let rec draw_horiz_edge w  = 
   if w == 1 then "-" 
-  else "-" ^ draw_vert_edge (w-1)
+  else "-" ^ draw_horiz_edge (w-1)
 
 (*w and l are the width and height of the playable area. so 0,0 is the first playable
   pixel and w,l is the last*)
 let make_board st w l snake apple =
-  print_endline (" " ^ draw_vert_edge (w));
+  print_endline (" " ^ draw_horiz_edge (w));
   draw_internal st w l snake apple;
-  print_endline (" " ^ draw_vert_edge (w))
+  print_endline (" " ^ draw_horiz_edge (w))
 
 let play_game arg =
   (*testing make_board*)
-  make_board () 20 10 [[2;2;2]] (7,8)
+  make_board () 78 50 [[2;2;2]] (7,8)
 
 let main () = 
   ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Press enter to start \n");
