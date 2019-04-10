@@ -9,7 +9,11 @@ open ANSITerminal
   let make_apple = 
   failwith "unimplemented"
 *)
-(*returns a string of length num filled with whitespace*)  
+(*returns a string of length num filled with whitespace*) 
+
+let width = 78
+let height = 30
+
 let rec whitespace num = 
   if num = 1 then " " 
   else " " ^ whitespace (num-1)
@@ -20,11 +24,11 @@ let get_snake_seg snake i=
 
 (**[get_seg_ycorr seg] gets the y corrdinate of the snake segment [seg]. *)
 let get_seg_ycorr seg =
-  List.nth seg 0
+  List.nth seg 1
 
 (**[get_seg_xcorr seg] gets the leftmost x corrdinate of the snake segment [seg]. *)
 let get_seg_xcorr seg =
-  List.nth seg 1
+  List.nth seg 0
 
 (** The format of each snake segment. *)
 let snake_seg =
@@ -51,7 +55,7 @@ let draw_apple =
 (*checks if part of the snake is in the current row*)
 let check_snake row snake = 
   if snake = [] then false
-  else row = List.nth (List.nth snake 0) 0
+  else row = List.nth (List.nth snake 0) 1
 
 (*checks if the apple is in the current row*)
 let check_apple row apple = 
@@ -79,7 +83,8 @@ let rec draw_horiz_edge w  =
 
 (*w and h are the width and height of the playable area. so 0,0 is the first 
   playable pixel and w,l is the last*)
-let make_board st w h snake apple =
+let make_board w h snake apple =
+
   print_endline (" " ^ draw_horiz_edge (w));
   draw_verti_edge w h;
   print_endline (" " ^ draw_horiz_edge (w));
@@ -91,9 +96,12 @@ let make_board st w h snake apple =
 
 
 
-let play_game arg =
-  (*testing make_board*)
-  make_board () 78 30 [[2;2];[2;4];[2;6]] (7,8)
+let play_game () =
+  let pro_ran () = 
+    (2 + Random.int (width-2), 5 + (Random.int (height-5))) in 
+  let rand = pro_ran() in 
+  make_board width height [[fst rand; snd rand]] (pro_ran())
+
 
 let main () = 
   ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Press enter to start \n");
@@ -101,5 +109,6 @@ let main () =
   match read_line () with
   | exception End_of_file -> ()
   | x -> play_game ()
+(* print_endline (string_of_int (fst up_left) ^ "   " ^ string_of_int (snd up_left)) *)
 
 let () = main ()
