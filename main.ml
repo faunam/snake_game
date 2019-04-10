@@ -1,3 +1,15 @@
+(**[getachar ()] gets one char (no matter what it is) from the imput and then 
+   returns. *)
+let getachar () =
+  let termio = Unix.tcgetattr Unix.stdin in
+  let () =
+    Unix.tcsetattr Unix.stdin Unix.TCSADRAIN
+      { termio with Unix.c_icanon = false } in
+  let res = input_char stdin in
+  Unix.tcsetattr Unix.stdin Unix.TCSADRAIN termio;
+  res;;
+
+
 open ANSITerminal
 open Unix
 (*outputs a list of lists of the form [y, x1, x2] ordered by y (greatest to least).
@@ -103,9 +115,51 @@ let make_board w h snake apple =
   print_string[red] (draw_apple);
   draw_snake snake;
   restore_cursor()
+(**[snake_update t old_dir new_dir turnover cur_pos] updates the snake position.
+   [old_dir] is the direction before a new direction button is pressed.
+   [turnover] is the turn point of the snake, exists only if [old_dir] is not 
+   equail to [new_dir]. 
+   [cur_pos] is the segment accumulater. *)
+let rec snake_update snake (old_dir:direction) (new_dir:direction) turnover cur_pos =
+  (* if turnover = (List.length snake) - 1 then snake else *)
+  match snake with
+  | [] -> snake
+  | [hx; hy] :: t -> begin
+      let tail () = (snake_update t old_dir new_dir turnover (cur_pos+1)) in
+      match (old_dir, new_dir) with
+      | (Up, Up) -> [hx;hy-1] :: tail()
+      | (Down, Down) -> [hx;hy+1] :: tail()
+      | (Left, Left) -> [hx-1;hy] :: tail()
+      | (Right, Right) -> [hx+1;hy] :: tail()
+      | (Left, n) -> 
+        if cur_pos <= turnover then if n = Up then [hx;hy-1] :: tail()  
+          else if n = Down then [hx;hy+1] :: tail() else failwith "impossible"
+        else [hx-1;hy] :: tail()
+      | (Right, n) -> 
+        if cur_pos <= turnover then if n = Up then [hx;hy-1] :: tail()  
+          else if n = Down then [hx;hy+1] :: tail() else failwith "impossible"
+        else [hx+1;hy] :: tail()
+      | (Up, n) -> 
+        if cur_pos <= turnover then if n = Left then [hx-1;hy] :: tail()  
+          else if n = Right then [hx+1;hy] :: tail() else failwith "impossible"
+        else [hx;hy-1] :: tail()
+      | (Down, n) -> 
+        if cur_pos <= turnover then if n = Left then [hx-1;hy] :: tail()  
+          else if n = Right then [hx+1;hy] :: tail() else failwith "impossible"
+        else [hx;hy+1] :: tail()
+    end
+  |_-> failwith "impossiable"
 
-let move snake apple (sl:float) (dir:direction)=
-  sleepf(sl)
+(**[move snake apple sl old_dir new_dir] moves the snake every [sl] seconds.
+   [old_dir] is the direction before a new direction button is pressed. 
+   [new_dir] is the new direction depends on which button is pressed -- 
+   "W" is Up, "S" is Down, "A" is Left, "D" is Right. *)
+let rec move snake apple (sl:float) (old_dir:direction) (new_dir:direction)=
+  sleepf(sl);
+  erase Above;
+  let new_snake = snake_update snake old_dir new_dir 0 0 in
+  make_board width height new_snake apple
+
 
 
 let play_game () =
@@ -113,7 +167,10 @@ let play_game () =
   let pro_ran () = 
     (min (2 + Random.int (width-2)) ((fst terminal_size)-1), min (5 + Random.int (height-5)) ((snd terminal_size)-2)) in 
   let rand = pro_ran() in 
-  make_board width height [[fst rand; snd rand]] (pro_ran())
+  let snake = [[fst rand; snd rand]] in
+  let apple = (pro_ran()) in
+  make_board width height snake apple;
+  move snake apple 0.8 Right Right  
 
 
 let main () = 
