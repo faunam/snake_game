@@ -83,14 +83,15 @@ let make_board st w l snake apple =
   draw_internal st w l snake apple;
   print_endline (" " ^ draw_vert_edge (w))
 
-let play_game =
+let play_game arg =
+  (*testing make_board*)
   make_board () 20 10 [[2;2;2]] (7,8)
 
 let main () = 
-  ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Press enter to start. 
-    \n");
+  ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Press enter to start \n");
+  print_string[red] "> ";
   match read_line () with
   | exception End_of_file -> ()
-  | _ -> play_game 
+  | x -> play_game ()
 
 let () = main ()
