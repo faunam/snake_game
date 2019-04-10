@@ -48,9 +48,7 @@ let draw_snake snake =
 (* restore_cursor() *)
 
 let draw_apple = 
-  (*TODO: implement correctly*)
-  "o" (*for testing purposes*)
-(*failwith "unimplemented"*)
+  "o" 
 
 (*checks if part of the snake is in the current row*)
 let check_snake row snake = 
@@ -90,7 +88,7 @@ let make_board w h snake apple =
   print_endline (" " ^ draw_horiz_edge (w));
   save_cursor();
   set_cursor (fst apple) (snd apple);
-  print_endline (draw_apple);
+  print_string[red] (draw_apple);
   draw_snake snake;
   restore_cursor()
 
