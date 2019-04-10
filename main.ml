@@ -44,9 +44,7 @@ let draw_snake snake =
 (* restore_cursor() *)
 
 let draw_apple = 
-  (*TODO: implement correctly*)
-  "o" (*for testing purposes*)
-(*failwith "unimplemented"*)
+  "o" 
 
 (*checks if part of the snake is in the current row*)
 let check_snake row snake = 
