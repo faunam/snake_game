@@ -1,5 +1,5 @@
 open ANSITerminal
-
+open Unix
 (*outputs a list of lists of the form [y, x1, x2] ordered by y (greatest to least).
   y is a row that the snake appears on, x1 is the leftmost pixel and x2 is the 
   rightmost pixel of the snake in that row*)
@@ -13,6 +13,12 @@ open ANSITerminal
 
 let width = 78
 let height = 30
+
+type direction =
+  |Up
+  |Down
+  |Left
+  |Right
 
 let rec whitespace num = 
   if num = 1 then " " 
@@ -59,6 +65,12 @@ let check_snake row snake =
 let check_apple row apple = 
   row = snd(apple)
 
+(**[check_eat apple snake] checks whether [snake] can eat the [apple]. *)
+let check_eat apple snake =
+  let head = get_snake_seg snake 0 in
+  let head_x = get_seg_xcorr head in
+  let head_y = get_seg_ycorr head in
+  fst apple = head_x && (snd apple) = head_y
 (**snake is a list (described in make_snake), apple is a tuple (x, y) of apple 
    location this may not be the best way to implement snake and apple so we can 
    change it if necessary. Maybe they can be included in the state variable st? 
@@ -92,11 +104,14 @@ let make_board w h snake apple =
   draw_snake snake;
   restore_cursor()
 
+let move snake apple (sl:float) (dir:direction)=
+  sleepf(sl)
 
 
 let play_game () =
+  let terminal_size = size() in
   let pro_ran () = 
-    (2 + Random.int (width-2), 5 + (Random.int (height-5))) in 
+    (min (2 + Random.int (width-2)) ((fst terminal_size)-1), min (5 + Random.int (height-5)) ((snd terminal_size)-2)) in 
   let rand = pro_ran() in 
   make_board width height [[fst rand; snd rand]] (pro_ran())
 
@@ -105,7 +120,7 @@ let main () =
   ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Press enter to start \n");
   print_string[red] "> ";
   match read_line () with
-  | exception End_of_file -> ()
+  | exception _ -> ()
   | x -> play_game ()
 (* print_endline (string_of_int (fst up_left) ^ "   " ^ string_of_int (snd up_left)) *)
 
