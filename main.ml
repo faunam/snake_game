@@ -85,7 +85,7 @@ let make_board st w h snake apple =
   print_endline (" " ^ draw_horiz_edge (w));
   save_cursor();
   set_cursor (fst apple) (snd apple);
-  print_endline (draw_apple);
+  print_string[red] (draw_apple);
   draw_snake snake;
   restore_cursor()
 
