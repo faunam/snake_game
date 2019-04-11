@@ -110,11 +110,12 @@ let make_board w h snake apple =
   print_endline (" " ^ draw_horiz_edge (w));
   draw_verti_edge w h;
   print_endline (" " ^ draw_horiz_edge (w));
-  save_cursor();
+  let pos = pos_cursor() in
   set_cursor (fst apple) (snd apple);
   print_string[red] (draw_apple);
   draw_snake snake;
-  restore_cursor()
+  set_cursor (fst pos) ((snd pos)+1)
+
 (**[snake_update t old_dir new_dir turnover cur_pos] updates the snake position.
    [old_dir] is the direction before a new direction button is pressed.
    [turnover] is the turn point of the snake, exists only if [old_dir] is not 
@@ -169,6 +170,7 @@ let play_game () =
   let rand = pro_ran() in 
   let snake = [[fst rand; snd rand]] in
   let apple = (pro_ran()) in
+  print_endline ((string_of_int (fst terminal_size)) ^"  "^ (string_of_int (snd terminal_size)));
   make_board width height snake apple;
   move snake apple 0.8 Right Right  
 
