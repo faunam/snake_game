@@ -108,7 +108,9 @@ let make_board w h snake apple =
   set_cursor (fst apple) (snd apple);
   print_string[red] (draw_apple);
   draw_snake snake;
-  set_cursor (fst pos) ((snd pos)+1)
+  set_cursor (fst pos) ((snd pos)+1);
+  print_string[blue] ("   Score: " ^ string_of_int(List.length snake));
+  set_cursor (fst pos) ((snd pos)+4)
 
 let snake_add_head (dir:direction) snake =
   match snake with
