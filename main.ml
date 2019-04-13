@@ -189,7 +189,7 @@ let eat_apple apple snake dir =
       let new_snake = snake @ new_seg in 
       make_board width height new_snake new_apple
     | Right -> let new_seg = [[last_snake_x -1; last_snake_y];
-      [last_snake_x -2; last_snake_y]] in 
+      [last_snake_x -2; last_snake_y]] in  
       let new_snake = snake @ new_seg in 
       make_board width height new_snake new_apple
   else make_board width height snake apple
