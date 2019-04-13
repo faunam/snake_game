@@ -131,32 +131,30 @@ let snake_remove_tail snake =
     two (for now). *)
 (* when should this function be called?*)
 let eat_apple apple snake dir =
-  if check_eat apple snake 
-  then let terminal_size = size() in 
-    let new_apple = (min (2 + Random.int (width-2)) ((fst terminal_size)-1), 
-                     min (5 + Random.int (height-5)) ((snd terminal_size)-2)) in
-    let length = List.length snake in 
-    let last_snake = get_snake_seg snake (length-1) in 
-    let last_snake_x = get_seg_xcorr last_snake in 
-    let last_snake_y = get_seg_ycorr last_snake in 
-    match dir with
-    | Up -> let new_seg = [[last_snake_x; last_snake_y + 1]; 
-                           [last_snake_x; last_snake_y + 2]] in 
-      let new_snake = snake @ new_seg in 
-      make_board width height new_snake new_apple
-    | Down -> let new_seg = [[last_snake_x; last_snake_y -1];
-                             [last_snake_x; last_snake_y - 2]]  in 
-      let new_snake = snake @ new_seg in 
-      make_board width height new_snake new_apple
-    | Left -> let new_seg = [[last_snake_x + 2; last_snake_y];
-                             [last_snake_x + 4; last_snake_y]] in 
-      let new_snake = snake @ new_seg in 
-      make_board width height new_snake new_apple
-    | Right -> let new_seg = [[last_snake_x -2; last_snake_y];
-                              [last_snake_x -4; last_snake_y]] in 
-      let new_snake = snake @ new_seg in 
-      make_board width height new_snake new_apple
-  else make_board width height snake apple
+  let terminal_size = size() in 
+  let new_apple = (min (2 + Random.int (width-2)) ((fst terminal_size)-1), 
+                   min (5 + Random.int (height-5)) ((snd terminal_size)-2)) in
+  let length = List.length snake in 
+  let last_snake = get_snake_seg snake (length-1) in 
+  let last_snake_x = get_seg_xcorr last_snake in 
+  let last_snake_y = get_seg_ycorr last_snake in 
+  match dir with
+  | Up -> let new_seg = [[last_snake_x; last_snake_y + 1]; 
+                         [last_snake_x; last_snake_y + 2]] in 
+    let new_snake = snake @ new_seg in 
+    make_board width height new_snake new_apple; new_snake
+  | Down -> let new_seg = [[last_snake_x; last_snake_y -1];
+                           [last_snake_x; last_snake_y - 2]]  in 
+    let new_snake = snake @ new_seg in 
+    make_board width height new_snake new_apple; new_snake
+  | Left -> let new_seg = [[last_snake_x + 2; last_snake_y];
+                           [last_snake_x + 4; last_snake_y]] in 
+    let new_snake = snake @ new_seg in 
+    make_board width height new_snake new_apple; new_snake
+  | Right -> let new_seg = [[last_snake_x -2; last_snake_y];
+                            [last_snake_x -4; last_snake_y]] in 
+    let new_snake = snake @ new_seg in 
+    make_board width height new_snake new_apple; new_snake
 
 (**[move snake apple sl old_dir new_dir] moves the snake every [sl] seconds.
    [old_dir] is the direction before a new direction button is pressed. 
@@ -166,9 +164,9 @@ let rec move snake apple (sl:float) dir cursor_pos=
   (*sleepf(sl);*)
   set_cursor 1 (max ((snd cursor_pos)-height-2) 1);
   let new_snake = snake |> snake_add_head dir |> snake_remove_tail in
-  if check_eat apple new_snake then eat_apple apple new_snake dir else
-    make_board width height new_snake apple;
-  new_snake
+  if check_eat apple new_snake then 
+    let n = eat_apple apple new_snake dir in n else
+    (make_board width height new_snake apple;new_snake)
 
 let rec receive_input ()=
   let input = getachar() in
