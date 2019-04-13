@@ -7,7 +7,7 @@ let getachar () =
       { termio with Unix.c_icanon = false } in
   let res = input_char stdin in
   Unix.tcsetattr Unix.stdin Unix.TCSADRAIN termio;
-  res;;
+  res
 
 
 open ANSITerminal
@@ -17,7 +17,6 @@ open Unix
   rightmost pixel of the snake in that row*)
 (*let make_snake = 
   failwith "unimplemented"
-
   let make_apple = 
   failwith "unimplemented"
 *)
@@ -52,17 +51,13 @@ let get_seg_xcorr seg =
 let snake_seg =
   "[]"
 
-let rec draw_snake_seg snake len i=
-  let seg = get_snake_seg snake i in
-  set_cursor (get_seg_xcorr seg) (get_seg_ycorr seg);
-  if i = len-1 then print_endline (snake_seg)
-  else (print_endline (snake_seg); draw_snake_seg snake len (i+1))
-
 (*draws snake segment on one row; len number of repetitions*)
-let draw_snake snake = 
+let rec draw_snake snake = 
   (* save_cursor(); *)
-  let len = List.length snake in
-  draw_snake_seg snake len 0
+  match snake with
+  |[] -> ()
+  |h :: t -> set_cursor (get_seg_xcorr h) (get_seg_ycorr h);
+    print_endline (snake_seg);draw_snake t
 (* restore_cursor() *)
 
 let draw_apple = 
@@ -83,12 +78,10 @@ let check_eat apple snake =
   let head_x = get_seg_xcorr head in
   let head_y = get_seg_ycorr head in
   fst apple = head_x && (snd apple) = head_y
-
 (**snake is a list (described in make_snake), apple is a tuple (x, y) of apple 
    location this may not be the best way to implement snake and apple so we can 
    change it if necessary. Maybe they can be included in the state variable st? 
    I just added it now so that the function would return unit. 
-
    Problem: the function prints forever right now and i can't figure out why*)
 
 (*this function goes row by row and if the snake or the apple are in the current row, 
@@ -117,50 +110,21 @@ let make_board w h snake apple =
   draw_snake snake;
   set_cursor (fst pos) ((snd pos)+1)
 
-(**[snake_update t old_dir new_dir turnover cur_pos] updates the snake position.
-   [old_dir] is the direction before a new direction button is pressed.
-   [turnover] is the turn point of the snake, exists only if [old_dir] is not 
-   equail to [new_dir]. 
-   [cur_pos] is the segment accumulater. *)
-let rec snake_update snake (old_dir:direction) (new_dir:direction) turnover cur_pos =
-  (* if turnover = (List.length snake) - 1 then snake else *)
+let snake_add_head (dir:direction) snake =
   match snake with
-  | [] -> snake
-  | [hx; hy] :: t -> begin
-      let tail () = (snake_update t old_dir new_dir turnover (cur_pos+1)) in
-      match (old_dir, new_dir) with
-      | (Up, Up) -> [hx;hy-1] :: tail()
-      | (Down, Down) -> [hx;hy+1] :: tail()
-      | (Left, Left) -> [hx-1;hy] :: tail()
-      | (Right, Right) -> [hx+1;hy] :: tail()
-      | (Left, n) -> 
-        if cur_pos <= turnover then if n = Up then [hx;hy-1] :: tail()  
-          else if n = Down then [hx;hy+1] :: tail() else failwith "impossible"
-        else [hx-1;hy] :: tail()
-      | (Right, n) -> 
-        if cur_pos <= turnover then if n = Up then [hx;hy-1] :: tail()  
-          else if n = Down then [hx;hy+1] :: tail() else failwith "impossible"
-        else [hx+1;hy] :: tail()
-      | (Up, n) -> 
-        if cur_pos <= turnover then if n = Left then [hx-1;hy] :: tail()  
-          else if n = Right then [hx+1;hy] :: tail() else failwith "impossible"
-        else [hx;hy-1] :: tail()
-      | (Down, n) -> 
-        if cur_pos <= turnover then if n = Left then [hx-1;hy] :: tail()  
-          else if n = Right then [hx+1;hy] :: tail() else failwith "impossible"
-        else [hx;hy+1] :: tail()
+  |[] -> []
+  |[x;y] :: t -> begin
+      match dir with
+      |Up -> [x; y-1] :: snake
+      |Down -> [x; y+1] :: snake
+      |Left -> [x-1; y] :: snake
+      |Right -> [x+1; y] :: snake
     end
-  |_-> failwith "impossiable"
+  |_ -> failwith "impossible"
 
-(**[move snake apple sl old_dir new_dir] moves the snake every [sl] seconds.
-   [old_dir] is the direction before a new direction button is pressed. 
-   [new_dir] is the new direction depends on which button is pressed -- 
-   "W" is Up, "S" is Down, "A" is Left, "D" is Right. *)
-let rec move snake apple (sl:float) (old_dir:direction) (new_dir:direction)=
-  sleepf(sl);
-  erase Above;
-  let new_snake = snake_update snake old_dir new_dir 0 0 in
-  make_board width height new_snake apple
+let snake_remove_tail snake = 
+  if List.length snake = 0 then snake else
+    snake |> List.rev |> List.tl |> List.rev
 
 (** [eat_apple apple snake] deletes apple when snake head is at same location 
   and creates a new apple in a random spot, then increases snake length by
@@ -189,29 +153,54 @@ let eat_apple apple snake dir =
       let new_snake = snake @ new_seg in 
       make_board width height new_snake new_apple
     | Right -> let new_seg = [[last_snake_x -1; last_snake_y];
-      [last_snake_x -2; last_snake_y]] in  
+      [last_snake_x -2; last_snake_y]] in 
       let new_snake = snake @ new_seg in 
       make_board width height new_snake new_apple
   else make_board width height snake apple
 
-let play_game () =
+(**[move snake apple sl old_dir new_dir] moves the snake every [sl] seconds.
+   [old_dir] is the direction before a new direction button is pressed. 
+   [new_dir] is the new direction depends on which button is pressed -- 
+   "W" is Up, "S" is Down, "A" is Left, "D" is Right. *)
+let rec move snake apple (sl:float) dir cursor_pos=
+  sleepf(sl);
+  (* erase Screen; *)
+  set_cursor 1 (max ((snd cursor_pos)-height-2) 1);
+  (* print_string[] ("\x1B[2J"); *)
+  let new_snake = snake |> snake_add_head dir |> snake_remove_tail in
+  if check_eat apple new_snake then eat_apple apple new_snake dir else
+  make_board width height new_snake apple
+
+let rec receive_input ()=
+  let input = getachar() in
+  match input with
+  |'w' -> Up | 's' -> Down | 'a' -> Left | 'd' -> Right
+  | _ -> receive_input();;
+
+let play_game cursor_pos =
   let terminal_size = size() in
   let pro_ran () = 
     (min (2 + Random.int (width-2)) ((fst terminal_size)-1), min (5 + Random.int (height-5)) ((snd terminal_size)-2)) in 
   let rand = pro_ran() in 
   let snake = [[fst rand; snd rand]] in
   let apple = (pro_ran()) in
-  print_endline ((string_of_int (fst terminal_size)) ^"  "^ (string_of_int (snd terminal_size)));
+  (* print_endline ((string_of_int (fst terminal_size)) ^"  "^ (string_of_int (snd terminal_size))); *)
   make_board width height snake apple;
-  move snake apple 0.8 Right Right  
+  (* move snake apple 0.8 Right Right   *)
+  let rec play () =
+    let input = receive_input() in 
+    move snake apple 0.8 input cursor_pos;
+    play () in
+  play ()
 
 
 let main () = 
   ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Press enter to start \n");
   print_string[red] "> ";
+  let cursor_pos = pos_cursor() in
+  print_endline (string_of_int (fst cursor_pos) ^ "   " ^ string_of_int (snd cursor_pos));
   match read_line () with
   | exception _ -> ()
-  | x -> play_game ()
-(* print_endline (string_of_int (fst up_left) ^ "   " ^ string_of_int (snd up_left)) *)
+  | x -> play_game cursor_pos
 
 let () = main ()
