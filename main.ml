@@ -148,12 +148,12 @@ let eat_apple apple snake dir =
                              [last_snake_x; last_snake_y - 2]]  in 
       let new_snake = snake @ new_seg in 
       make_board width height new_snake new_apple
-    | Left -> let new_seg = [[last_snake_x + 1; last_snake_y];
-                             [last_snake_x + 2; last_snake_y]] in 
+    | Left -> let new_seg = [[last_snake_x + 2; last_snake_y];
+                             [last_snake_x + 4; last_snake_y]] in 
       let new_snake = snake @ new_seg in 
       make_board width height new_snake new_apple
-    | Right -> let new_seg = [[last_snake_x -1; last_snake_y];
-                              [last_snake_x -2; last_snake_y]] in 
+    | Right -> let new_seg = [[last_snake_x -2; last_snake_y];
+                              [last_snake_x -4; last_snake_y]] in 
       let new_snake = snake @ new_seg in 
       make_board width height new_snake new_apple
   else make_board width height snake apple
@@ -163,7 +163,7 @@ let eat_apple apple snake dir =
    [new_dir] is the new direction depends on which button is pressed -- 
    "W" is Up, "S" is Down, "A" is Left, "D" is Right. *)
 let rec move snake apple (sl:float) dir cursor_pos=
-  sleepf(sl);
+  (*sleepf(sl);*)
   set_cursor 1 (max ((snd cursor_pos)-height-2) 1);
   let new_snake = snake |> snake_add_head dir |> snake_remove_tail in
   if check_eat apple new_snake then eat_apple apple new_snake dir else
