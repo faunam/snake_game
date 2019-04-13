@@ -83,6 +83,7 @@ let check_eat apple snake =
   let head_x = get_seg_xcorr head in
   let head_y = get_seg_ycorr head in
   fst apple = head_x && (snd apple) = head_y
+
 (**snake is a list (described in make_snake), apple is a tuple (x, y) of apple 
    location this may not be the best way to implement snake and apple so we can 
    change it if necessary. Maybe they can be included in the state variable st? 
@@ -161,7 +162,37 @@ let rec move snake apple (sl:float) (old_dir:direction) (new_dir:direction)=
   let new_snake = snake_update snake old_dir new_dir 0 0 in
   make_board width height new_snake apple
 
-
+(** [eat_apple apple snake] deletes apple when snake head is at same location 
+  and creates a new apple in a random spot, then increases snake length by
+  two (for now). *)
+  (* when should this function be called?*)
+let eat_apple apple snake dir =
+  if check_eat apple snake 
+    then let terminal_size = size() in 
+    let new_apple = (min (2 + Random.int (width-2)) ((fst terminal_size)-1), 
+      min (5 + Random.int (height-5)) ((snd terminal_size)-2)) in
+    let length = List.length snake in 
+    let last_snake = get_snake_seg snake (length-1) in 
+    let last_snake_x = get_seg_xcorr last_snake in 
+    let last_snake_y = get_seg_ycorr last_snake in 
+    match dir with
+    | Up -> let new_seg = [[last_snake_x; last_snake_y + 1]; 
+      [last_snake_x; last_snake_y + 2]] in 
+      let new_snake = snake @ new_seg in 
+      make_board width height new_snake new_apple
+    | Down -> let new_seg = [[last_snake_x; last_snake_y -1];
+      [last_snake_x; last_snake_y - 2]]  in 
+      let new_snake = snake @ new_seg in 
+      make_board width height new_snake new_apple
+    | Left -> let new_seg = [[last_snake_x + 1; last_snake_y];
+      [last_snake_x + 2; last_snake_y]] in 
+      let new_snake = snake @ new_seg in 
+      make_board width height new_snake new_apple
+    | Right -> let new_seg = [[last_snake_x -1; last_snake_y];
+      [last_snake_x -2; last_snake_y]] in 
+      let new_snake = snake @ new_seg in 
+      make_board width height new_snake new_apple
+  else make_board width height snake apple
 
 let play_game () =
   let terminal_size = size() in
