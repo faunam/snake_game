@@ -57,7 +57,7 @@ let rec draw_snake snake =
   match snake with
   |[] -> ()
   |h :: t -> set_cursor (get_seg_xcorr h) (get_seg_ycorr h);
-    print_endline (snake_seg);draw_snake t
+    print_string[green] (snake_seg);draw_snake t
 (* restore_cursor() *)
 
 let draw_apple = 
