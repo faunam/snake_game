@@ -158,6 +158,12 @@ let eat_apple apple snake dir =
     let new_snake = snake @ new_seg in 
     make_board width height new_snake new_apple; new_snake
 
+let is_dead snake cursor_pos= 
+  match snake with
+  | [] -> false
+  | [x; y] :: t -> y = (max ((snd cursor_pos)-height-2) 1) || y = (snd cursor_pos)-1 
+                   || x <= 1 || x >= width || List.mem [x;y] t
+  | _ -> false
 (**[move snake apple sl old_dir new_dir] moves the snake every [sl] seconds.
    [old_dir] is the direction before a new direction button is pressed. 
    [new_dir] is the new direction depends on which button is pressed -- 
@@ -188,8 +194,9 @@ let play_game cursor_pos =
   (* move snake apple 0.8 Right Right   *)
   let rec play n_snake =
     let input = receive_input() in 
-    let new_snake = move n_snake apple 0.8 input cursor_pos in
-    play new_snake in
+    let new_snake = move n_snake apple 0.8 input cursor_pos in 
+    if is_dead new_snake cursor_pos then () else
+      play new_snake in
   play snake
 
 
@@ -197,7 +204,7 @@ let main () =
   ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Press enter to start \n");
   print_string[red] "> ";
   let cursor_pos = pos_cursor() in
-  print_endline (string_of_int (fst cursor_pos) ^ "   " ^ string_of_int (snd cursor_pos));
+  (* print_endline (string_of_int (fst cursor_pos) ^ "   " ^ string_of_int (snd cursor_pos)); *)
   match read_line () with
   | exception _ -> ()
   | x -> play_game cursor_pos
