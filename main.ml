@@ -117,8 +117,8 @@ let snake_add_head (dir:direction) snake =
       match dir with
       |Up -> [x; y-1] :: snake
       |Down -> [x; y+1] :: snake
-      |Left -> [x-1; y] :: snake
-      |Right -> [x+1; y] :: snake
+      |Left -> [x-2; y] :: snake
+      |Right -> [x+2; y] :: snake
     end
   |_ -> failwith "impossible"
 
