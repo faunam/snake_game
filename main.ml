@@ -9,6 +9,11 @@ let getachar () =
   Unix.tcsetattr Unix.stdin Unix.TCSADRAIN termio;
   res
 
+let reset_terminal () = 
+  let termio = Unix.tcgetattr Unix.stdin in
+  let new_ter =
+    { termio with Unix.c_icanon = true; Unix.c_vmin = 1; Unix.c_vtime=0} in
+  Unix.tcsetattr Unix.stdin Unix.TCSADRAIN new_ter
 
 open ANSITerminal
 open Unix
@@ -62,6 +67,12 @@ let rec draw_snake snake =
 
 let draw_apple = 
   "o" 
+
+let row_top cursor_pos =
+  let y = snd cursor_pos in
+  if y > height then
+    (max (y-height-2) 2)
+  else (y+3)
 
 (*checks if part of the snake is in the current row*)
 let check_snake row snake = 
@@ -131,15 +142,17 @@ let snake_remove_tail snake =
   if List.length snake = 0 then snake else
     snake |> List.rev |> List.tl |> List.rev
 
+let produce_random_pos cursor_pos =
+  let terminal_size = size() in 
+  let r_t = row_top cursor_pos in
+  (min (2 + Random.int (width-2)) (fst terminal_size), 
+   min (r_t+1 + Random.int (height-r_t)) ((snd terminal_size)-2))
 (** [eat_apple apple snake] deletes apple when snake head is at same location 
     and creates a new apple in a random spot, then increases snake length by
     two (for now). *)
 (* when should this function be called?*)
 let eat_apple apple snake dir cursor_pos=
-  let terminal_size = size() in 
-  let row_top = (max ((snd cursor_pos)-height-2) 2) in
-  let new_apple = (min (2 + Random.int (width-2)) (fst terminal_size), 
-                   min (row_top + Random.int (height-row_top)) ((snd terminal_size)-2)) in
+  let new_apple = produce_random_pos cursor_pos in
   (* print_endline (string_of_int (fst new_apple) ^ "   " ^ string_of_int (snd new_apple)); *)
   let length = List.length snake in 
   let last_snake = get_snake_seg snake (length-1) in 
@@ -166,7 +179,7 @@ let eat_apple apple snake dir cursor_pos=
 let is_dead snake cursor_pos= 
   match snake with
   | [] -> false
-  | [x; y] :: t -> y = (max ((snd cursor_pos)-height-2) 1) || y = (snd cursor_pos)-1 
+  | [x; y] :: t -> y = row_top cursor_pos || y = (snd cursor_pos)-1 
                    || x <= 1 || x >= width || List.mem [x;y] t
   | _ -> false
 (**[move snake apple sl old_dir new_dir] moves the snake every [sl] seconds.
@@ -175,7 +188,7 @@ let is_dead snake cursor_pos=
    "W" is Up, "S" is Down, "A" is Left, "D" is Right. *)
 let rec move snake apple (sl:float) dir cursor_pos=
   sleepf(sl);
-  set_cursor 1 (max ((snd cursor_pos)-height-2) 1);
+  set_cursor 1 (row_top cursor_pos);
   let new_snake = snake |> snake_add_head dir |> snake_remove_tail in
   if check_eat apple new_snake then 
     eat_apple apple new_snake dir cursor_pos else
@@ -188,27 +201,24 @@ let rec receive_input ()=
   | _ -> receive_input();;
 
 let play_game cursor_pos =
-  let terminal_size = size() in 
-  let row_top = (max ((snd cursor_pos)-height-2) 2) in
-  let pro_ran () = (min (2 + Random.int (width-2)) (fst terminal_size), 
-                    min (row_top + Random.int (height-row_top)) ((snd terminal_size)-2)) in 
+  let pro_ran () = produce_random_pos cursor_pos in 
   let rand = pro_ran() in 
   let snake = [[fst rand; snd rand]] in
   let apple = (pro_ran()) in
   (* print_endline ((string_of_int (fst terminal_size)) ^"  "^ (string_of_int (snd terminal_size))); *)
   make_board width height snake apple;
-  (* move snake apple 0.8 Right Right   *)
+
   let rec play n_snake n_apple old_dir= 
     (try
        (let input = receive_input() in
         let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
-        if is_dead new_snake cursor_pos then () else
+        if is_dead new_snake cursor_pos then reset_terminal() else
           play new_snake new_apple input)
      with
      |exp -> (let input = old_dir
               in 
               let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
-              if is_dead new_snake cursor_pos then () else
+              if is_dead new_snake cursor_pos then reset_terminal() else
                 play new_snake new_apple input))
   in
   play snake apple Left
