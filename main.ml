@@ -187,7 +187,7 @@ let is_dead snake cursor_pos=
    [new_dir] is the new direction depends on which button is pressed -- 
    "W" is Up, "S" is Down, "A" is Left, "D" is Right. *)
 let rec move snake apple (sl:float) dir cursor_pos=
-  sleepf(sl);
+  (* sleepf(sl); *)
   set_cursor 1 (row_top cursor_pos);
   let new_snake = snake |> snake_add_head dir |> snake_remove_tail in
   if check_eat apple new_snake then 
@@ -215,8 +215,7 @@ let play_game cursor_pos =
         if is_dead new_snake cursor_pos then reset_terminal() else
           play new_snake new_apple input)
      with
-     |exp -> (let input = old_dir
-              in 
+     |exp -> (let input = old_dir in 
               let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
               if is_dead new_snake cursor_pos then reset_terminal() else
                 play new_snake new_apple input))
