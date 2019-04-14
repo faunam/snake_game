@@ -77,7 +77,10 @@ let check_eat apple snake =
   let head = get_snake_seg snake 0 in
   let head_x = get_seg_xcorr head in
   let head_y = get_seg_ycorr head in
-  fst apple = head_x && (snd apple) = head_y
+  let apple_x = fst apple in
+  let apple_y = snd apple in
+  apple_x = head_x &&  apple_y = head_y ||
+  (apple_x = (head_x+1) && apple_y = head_y)
 (**snake is a list (described in make_snake), apple is a tuple (x, y) of apple 
    location this may not be the best way to implement snake and apple so we can 
    change it if necessary. Maybe they can be included in the state variable st? 
@@ -132,10 +135,12 @@ let snake_remove_tail snake =
     and creates a new apple in a random spot, then increases snake length by
     two (for now). *)
 (* when should this function be called?*)
-let eat_apple apple snake dir =
+let eat_apple apple snake dir cursor_pos=
   let terminal_size = size() in 
-  let new_apple = (min (2 + Random.int (width-2)) ((fst terminal_size)-1), 
-                   min (5 + Random.int (height-5)) ((snd terminal_size)-2)) in
+  let row_top = (max ((snd cursor_pos)-height-2) 2) in
+  let new_apple = (min (2 + Random.int (width-2)) (fst terminal_size), 
+                   min (row_top + Random.int (height-row_top)) ((snd terminal_size)-2)) in
+  (* print_endline (string_of_int (fst new_apple) ^ "   " ^ string_of_int (snd new_apple)); *)
   let length = List.length snake in 
   let last_snake = get_snake_seg snake (length-1) in 
   let last_snake_x = get_seg_xcorr last_snake in 
@@ -144,19 +149,19 @@ let eat_apple apple snake dir =
   | Up -> let new_seg = [[last_snake_x; last_snake_y + 1]; 
                          [last_snake_x; last_snake_y + 2]] in 
     let new_snake = snake @ new_seg in 
-    make_board width height new_snake new_apple; new_snake
+    make_board width height new_snake new_apple; (new_snake,new_apple)
   | Down -> let new_seg = [[last_snake_x; last_snake_y -1];
                            [last_snake_x; last_snake_y - 2]]  in 
     let new_snake = snake @ new_seg in 
-    make_board width height new_snake new_apple; new_snake
+    make_board width height new_snake new_apple; (new_snake,new_apple)
   | Left -> let new_seg = [[last_snake_x + 2; last_snake_y];
                            [last_snake_x + 4; last_snake_y]] in 
     let new_snake = snake @ new_seg in 
-    make_board width height new_snake new_apple; new_snake
+    make_board width height new_snake new_apple; (new_snake,new_apple)
   | Right -> let new_seg = [[last_snake_x -2; last_snake_y];
                             [last_snake_x -4; last_snake_y]] in 
     let new_snake = snake @ new_seg in 
-    make_board width height new_snake new_apple; new_snake
+    make_board width height new_snake new_apple; (new_snake,new_apple)
 
 let is_dead snake cursor_pos= 
   match snake with
@@ -173,8 +178,8 @@ let rec move snake apple (sl:float) dir cursor_pos=
   set_cursor 1 (max ((snd cursor_pos)-height-2) 1);
   let new_snake = snake |> snake_add_head dir |> snake_remove_tail in
   if check_eat apple new_snake then 
-    let n = eat_apple apple new_snake dir in n else
-    (make_board width height new_snake apple;new_snake)
+    eat_apple apple new_snake dir cursor_pos else
+    (make_board width height new_snake apple;(new_snake, apple))
 
 let rec receive_input ()=
   let input = getachar() in
@@ -183,21 +188,22 @@ let rec receive_input ()=
   | _ -> receive_input();;
 
 let play_game cursor_pos =
-  let terminal_size = size() in
-  let pro_ran () = 
-    (min (2 + Random.int (width-2)) ((fst terminal_size)-1), min (5 + Random.int (height-5)) ((snd terminal_size)-2)) in 
+  let terminal_size = size() in 
+  let row_top = (max ((snd cursor_pos)-height-2) 2) in
+  let pro_ran () = (min (2 + Random.int (width-2)) (fst terminal_size), 
+                    min (row_top + Random.int (height-row_top)) ((snd terminal_size)-2)) in 
   let rand = pro_ran() in 
   let snake = [[fst rand; snd rand]] in
   let apple = (pro_ran()) in
   (* print_endline ((string_of_int (fst terminal_size)) ^"  "^ (string_of_int (snd terminal_size))); *)
   make_board width height snake apple;
   (* move snake apple 0.8 Right Right   *)
-  let rec play n_snake =
+  let rec play n_snake n_apple=
     let input = receive_input() in 
-    let new_snake = move n_snake apple 0.8 input cursor_pos in 
+    let (new_snake, new_apple) = move n_snake n_apple 0.8 input cursor_pos in 
     if is_dead new_snake cursor_pos then () else
-      play new_snake in
-  play snake
+      play new_snake new_apple in
+  play snake apple
 
 
 let main () = 
