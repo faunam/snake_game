@@ -74,30 +74,6 @@ let row_top cursor_pos =
     (max (y-height-2) 2)
   else (y+3)
 
-(*checks if part of the snake is in the current row*)
-let check_snake row snake = 
-  if snake = [] then false
-  else row = List.nth (List.nth snake 0) 1
-
-(*checks if the apple is in the current row*)
-let check_apple row apple = 
-  row = snd(apple)
-
-(**[check_eat apple snake] checks whether [snake] can eat the [apple]. *)
-let check_eat apple snake =
-  let head = get_snake_seg snake 0 in
-  let head_x = get_seg_xcorr head in
-  let head_y = get_seg_ycorr head in
-  let apple_x = fst apple in
-  let apple_y = snd apple in
-  apple_x = head_x &&  apple_y = head_y ||
-  (apple_x = (head_x+1) && apple_y = head_y)
-(**snake is a list (described in make_snake), apple is a tuple (x, y) of apple 
-   location this may not be the best way to implement snake and apple so we can 
-   change it if necessary. Maybe they can be included in the state variable st? 
-   I just added it now so that the function would return unit. 
-   Problem: the function prints forever right now and i can't figure out why*)
-
 (*this function goes row by row and if the snake or the apple are in the current row, 
   it draws them and adds white space around them, and the board borders.*)
 let rec draw_verti_edge w h = 
@@ -125,6 +101,31 @@ let make_board w h snake apple =
   set_cursor (fst pos) ((snd pos)+1);
   print_string[blue] ("  Score: " ^ string_of_int(List.length snake));
   set_cursor (fst pos) ((snd pos)+4)
+
+(*checks if part of the snake is in the current row*)
+let check_snake row snake = 
+  if snake = [] then false
+  else row = List.nth (List.nth snake 0) 1
+
+(*checks if the apple is in the current row*)
+let check_apple row apple = 
+  row = snd(apple)
+
+(**[check_eat apple snake] checks whether [snake] can eat the [apple]. *)
+let check_eat apple snake =
+  let head = get_snake_seg snake 0 in
+  let head_x = get_seg_xcorr head in
+  let head_y = get_seg_ycorr head in
+  let apple_x = fst apple in
+  let apple_y = snd apple in
+  apple_x = head_x &&  apple_y = head_y ||
+  (apple_x = (head_x+1) && apple_y = head_y)
+(**snake is a list (described in make_snake), apple is a tuple (x, y) of apple 
+   location this may not be the best way to implement snake and apple so we can 
+   change it if necessary. Maybe they can be included in the state variable st? 
+   I just added it now so that the function would return unit. 
+   Problem: the function prints forever right now and i can't figure out why*)
+
 
 let snake_add_head (dir:direction) snake =
   match snake with
@@ -200,6 +201,40 @@ let rec receive_input ()=
   |'w' -> Up | 's' -> Down | 'a' -> Left | 'd' -> Right
   | _ -> receive_input();;
 
+(*prints a game over box over the last game board and resets terminal*)
+let game_over snake = 
+  let pos = pos_cursor() in
+  let box_w = 30 in 
+  let box_h = 5 in 
+  set_cursor (width/2 - box_w/2) (height/2 + (box_h/2 -3));
+  print_endline (" " ^ draw_horiz_edge box_w);
+
+  let rec vert xpos ypos h = 
+    set_cursor xpos ypos;
+    if h = 1 then (print_endline ("|" ^ (whitespace (box_w)) ^ "|"); print_endline) 
+    else (print_endline ("|" ^ (whitespace (box_w)) ^ "|"); vert xpos (ypos+1) (h-1))
+  in
+  vert (width/2 -box_w/2) (height/2 + (box_h/2 -2)) 5;
+
+  set_cursor (width/2 -box_w/2) (height/2 + (box_h/2 + 3));
+  print_endline (" " ^ draw_horiz_edge box_w);
+
+  set_cursor (width/2 -4) (height/2 + (box_h/2 -1 ));
+  print_string[red] ("GAME OVER ");
+  set_cursor (width/2 -4) (height/2 + (box_h/2 + 1));
+  print_string[blue] ("Score: " ^ string_of_int(List.length snake));
+  set_cursor (fst pos) ((snd pos)+4);
+
+  reset_terminal()
+
+
+let rec draw_verti_edge w h = 
+  let row = "|" ^ (whitespace (w)) ^ "|"
+  in
+  if h = 1 then (print_endline row; print_endline) 
+  else (print_endline row; draw_verti_edge w (h-1))
+
+
 let play_game cursor_pos =
   let pro_ran () = produce_random_pos cursor_pos in 
   let rand = pro_ran() in 
@@ -212,13 +247,14 @@ let play_game cursor_pos =
     (try
        (let input = receive_input() in
         let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
-        if is_dead new_snake cursor_pos then reset_terminal() else
+        if is_dead new_snake cursor_pos then game_over new_snake else
           play new_snake new_apple input)
      with
      |exp -> (let input = old_dir in 
               let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
-              if is_dead new_snake cursor_pos then reset_terminal() else
-                play new_snake new_apple input))
+              if is_dead new_snake cursor_pos 
+              then (reset_terminal(); game_over new_snake) 
+              else play new_snake new_apple input))
   in
   play snake apple Left
 
