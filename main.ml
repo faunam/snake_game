@@ -99,7 +99,7 @@ let make_board w h snake apple =
   print_string[red] (draw_apple);
   draw_snake snake;
   set_cursor (fst pos) ((snd pos)+1);
-  print_string[blue] ("  Score: " ^ string_of_int(List.length snake));
+  print_string[blue] ("  Score: " ^ string_of_int(List.length snake) ^ whitespace(w-10));
   set_cursor (fst pos) ((snd pos)+4)
 
 (*checks if part of the snake is in the current row*)
@@ -227,14 +227,6 @@ let game_over snake =
 
   reset_terminal()
 
-
-let rec draw_verti_edge w h = 
-  let row = "|" ^ (whitespace (w)) ^ "|"
-  in
-  if h = 1 then (print_endline row; print_endline) 
-  else (print_endline row; draw_verti_edge w (h-1))
-
-
 let play_game cursor_pos =
   let pro_ran () = produce_random_pos cursor_pos in 
   let rand = pro_ran() in 
@@ -247,20 +239,19 @@ let play_game cursor_pos =
     (try
        (let input = receive_input() in
         let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
-        if is_dead new_snake cursor_pos then game_over new_snake else
-          play new_snake new_apple input)
+        if is_dead new_snake cursor_pos then game_over new_snake 
+        else play new_snake new_apple input)
      with
      |exp -> (let input = old_dir in 
               let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
-              if is_dead new_snake cursor_pos 
-              then (reset_terminal(); game_over new_snake) 
+              if is_dead new_snake cursor_pos then game_over new_snake
               else play new_snake new_apple input))
   in
   play snake apple Left
 
 
 let main () = 
-  ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Press enter to start \n");
+  ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Use WASD to change direction. Press enter to start \n");
   print_string[red] "> ";
   let cursor_pos = pos_cursor() in
   (* print_endline (string_of_int (fst cursor_pos) ^ "   " ^ string_of_int (snd cursor_pos)); *)
