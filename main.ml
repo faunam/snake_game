@@ -4,7 +4,7 @@ let getachar () =
   let termio = Unix.tcgetattr Unix.stdin in
   let () =
     Unix.tcsetattr Unix.stdin Unix.TCSADRAIN
-      { termio with Unix.c_icanon = false } in
+      { termio with Unix.c_icanon = false; Unix.c_vmin = 0; Unix.c_vtime=2} in
   let res = input_char stdin in
   Unix.tcsetattr Unix.stdin Unix.TCSADRAIN termio;
   res
@@ -174,7 +174,7 @@ let is_dead snake cursor_pos=
    [new_dir] is the new direction depends on which button is pressed -- 
    "W" is Up, "S" is Down, "A" is Left, "D" is Right. *)
 let rec move snake apple (sl:float) dir cursor_pos=
-  (*sleepf(sl);*)
+  sleepf(sl);
   set_cursor 1 (max ((snd cursor_pos)-height-2) 1);
   let new_snake = snake |> snake_add_head dir |> snake_remove_tail in
   if check_eat apple new_snake then 
@@ -198,12 +198,20 @@ let play_game cursor_pos =
   (* print_endline ((string_of_int (fst terminal_size)) ^"  "^ (string_of_int (snd terminal_size))); *)
   make_board width height snake apple;
   (* move snake apple 0.8 Right Right   *)
-  let rec play n_snake n_apple=
-    let input = receive_input() in 
-    let (new_snake, new_apple) = move n_snake n_apple 0.8 input cursor_pos in 
-    if is_dead new_snake cursor_pos then () else
-      play new_snake new_apple in
-  play snake apple
+  let rec play n_snake n_apple old_dir= 
+    (try
+       (let input = receive_input() in
+        let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
+        if is_dead new_snake cursor_pos then () else
+          play new_snake new_apple input)
+     with
+     |exp -> (let input = old_dir
+              in 
+              let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
+              if is_dead new_snake cursor_pos then () else
+                play new_snake new_apple input))
+  in
+  play snake apple Left
 
 
 let main () = 
