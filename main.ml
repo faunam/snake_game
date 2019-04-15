@@ -140,38 +140,6 @@ let produce_random_pos cursor_pos =
      min (r_t+1 + Random.int (height-r_t)) ((snd terminal_size)-2)) *)
   ((2 + Random.int (width-2)), (4 + Random.int (height-4)))
 
-(** [eat_apple apple snake] removes apple when snake head is at the same 
-    location as the apple and creates a new apple in a random spot, then increases 
-    snake length by two. *)
-let eat_apple apple snake dir cursor_pos =
-  let new_apple = produce_random_pos cursor_pos in
-  (* print_endline (string_of_int (fst new_apple) ^ "   " ^ string_of_int (snd new_apple)); *)
-  let new_snake = snake_add_head dir snake in 
-  make_board width height new_snake new_apple; (new_snake,new_apple)
-
-
-(* let length = List.length snake in 
-   let last_snake = get_snake_seg snake (length-1) in 
-   let last_snake_x = get_seg_xcorr last_snake in 
-   let last_snake_y = get_seg_ycorr last_snake in 
-   match dir with
-   | Up -> let new_seg = [[last_snake_x; last_snake_y + 1]; 
-                       [last_snake_x; last_snake_y + 2]] in 
-   let new_snake = snake @ new_seg in 
-   make_board width height new_snake new_apple; (new_snake,new_apple)
-   | Down -> let new_seg = [[last_snake_x; last_snake_y -1];
-                         [last_snake_x; last_snake_y - 2]]  in 
-   let new_snake = snake @ new_seg in 
-   make_board width height new_snake new_apple; (new_snake,new_apple)
-   | Left -> let new_seg = [[last_snake_x + 2; last_snake_y];
-                         [last_snake_x + 4; last_snake_y]] in 
-   let new_snake = snake @ new_seg in 
-   make_board width height new_snake new_apple; (new_snake,new_apple)
-   | Right -> let new_seg = [[last_snake_x -2; last_snake_y];
-                          [last_snake_x -4; last_snake_y]] in 
-   let new_snake = snake @ new_seg in 
-   make_board width height new_snake new_apple; (new_snake,new_apple) *)
-
 (** [is_dead snake cursor_pos] checks whether [snake] hits walls determined
     by [cursor_pos]  or itself. *)
 let is_dead snake cursor_pos= 
