@@ -20,10 +20,10 @@ open ANSITerminal
 open Unix
 
 (** Width of the canvas. *)
-let width = 78
+let width = 58
 
 (** Height of the canvas. *)
-let height = 30
+let height = 20
 
 (** Snake movement direction*)
 type direction =
@@ -143,30 +143,34 @@ let produce_random_pos cursor_pos =
 (** [eat_apple apple snake] removes apple when snake head is at the same 
     location as the apple and creates a new apple in a random spot, then increases 
     snake length by two. *)
-let eat_apple apple snake dir cursor_pos=
+let eat_apple apple snake dir cursor_pos =
   let new_apple = produce_random_pos cursor_pos in
   (* print_endline (string_of_int (fst new_apple) ^ "   " ^ string_of_int (snd new_apple)); *)
-  let length = List.length snake in 
-  let last_snake = get_snake_seg snake (length-1) in 
-  let last_snake_x = get_seg_xcorr last_snake in 
-  let last_snake_y = get_seg_ycorr last_snake in 
-  match dir with
-  | Up -> let new_seg = [[last_snake_x; last_snake_y + 1]; 
-                         [last_snake_x; last_snake_y + 2]] in 
-    let new_snake = snake @ new_seg in 
-    make_board width height new_snake new_apple; (new_snake,new_apple)
-  | Down -> let new_seg = [[last_snake_x; last_snake_y -1];
-                           [last_snake_x; last_snake_y - 2]]  in 
-    let new_snake = snake @ new_seg in 
-    make_board width height new_snake new_apple; (new_snake,new_apple)
-  | Left -> let new_seg = [[last_snake_x + 2; last_snake_y];
-                           [last_snake_x + 4; last_snake_y]] in 
-    let new_snake = snake @ new_seg in 
-    make_board width height new_snake new_apple; (new_snake,new_apple)
-  | Right -> let new_seg = [[last_snake_x -2; last_snake_y];
-                            [last_snake_x -4; last_snake_y]] in 
-    let new_snake = snake @ new_seg in 
-    make_board width height new_snake new_apple; (new_snake,new_apple)
+  let new_snake = snake_add_head dir snake in 
+  make_board width height new_snake new_apple; (new_snake,new_apple)
+
+
+(* let length = List.length snake in 
+   let last_snake = get_snake_seg snake (length-1) in 
+   let last_snake_x = get_seg_xcorr last_snake in 
+   let last_snake_y = get_seg_ycorr last_snake in 
+   match dir with
+   | Up -> let new_seg = [[last_snake_x; last_snake_y + 1]; 
+                       [last_snake_x; last_snake_y + 2]] in 
+   let new_snake = snake @ new_seg in 
+   make_board width height new_snake new_apple; (new_snake,new_apple)
+   | Down -> let new_seg = [[last_snake_x; last_snake_y -1];
+                         [last_snake_x; last_snake_y - 2]]  in 
+   let new_snake = snake @ new_seg in 
+   make_board width height new_snake new_apple; (new_snake,new_apple)
+   | Left -> let new_seg = [[last_snake_x + 2; last_snake_y];
+                         [last_snake_x + 4; last_snake_y]] in 
+   let new_snake = snake @ new_seg in 
+   make_board width height new_snake new_apple; (new_snake,new_apple)
+   | Right -> let new_seg = [[last_snake_x -2; last_snake_y];
+                          [last_snake_x -4; last_snake_y]] in 
+   let new_snake = snake @ new_seg in 
+   make_board width height new_snake new_apple; (new_snake,new_apple) *)
 
 (** [is_dead snake cursor_pos] checks whether [snake] hits walls determined
     by [cursor_pos]  or itself. *)
@@ -180,13 +184,14 @@ let is_dead snake cursor_pos=
 (**[move snake apple sl dir cursor_pos] moves the snake every [sl+0.2] seconds.
    [dir] is the new direction depends on which button is pressed -- 
    "W" is Up, "S" is Down, "A" is Left, "D" is Right. *)
-let rec move snake apple (sl:float) dir cursor_pos=
+let rec move snake apple (sl:float) dir cursor_pos (will_grow:bool)=
   (* sleepf(sl); *)
   set_cursor 1 (row_top cursor_pos);
-  let new_snake = snake |> snake_add_head dir |> snake_remove_tail in
-  if check_eat apple new_snake then 
-    eat_apple apple new_snake dir cursor_pos else
-    (make_board width height new_snake apple;(new_snake, apple))
+  let new_snake = if will_grow then snake |> snake_add_head dir
+    else snake |> snake_add_head dir |> snake_remove_tail in
+  let new_apple = if check_eat apple new_snake then produce_random_pos cursor_pos
+    else apple in 
+  make_board width height new_snake new_apple;(new_snake, new_apple)
 
 (** [receive_input ()] is the direction depends on the butten being pressed. *)
 let rec receive_input ()=
@@ -231,6 +236,8 @@ let game_over snake =
 
   reset_terminal()
 
+(* so check eat will check if snake is on apple i guess, and then eat will create a new apple, move snake onto tile where apple was, and add 2 to grow*)
+
 (** [play_game cursor_pos] updates the canvas after each snake movement. *)
 let play_game cursor_pos =
   let pro_ran () = produce_random_pos cursor_pos in 
@@ -240,24 +247,30 @@ let play_game cursor_pos =
   (* print_endline ((string_of_int (fst terminal_size)) ^"  "^ (string_of_int (snd terminal_size))); *)
   make_board width height snake apple;
   (* receives the user input and moves the snake*)
-  let rec play n_snake n_apple old_dir= 
+  (*grow is the number of iterations the snake should grow, incremented by eating an apple. decreases by
+    one each turn*)
+  let rec play n_snake n_apple old_dir (grow:int) = 
+    let will_grow = grow > 0 in
     (try
        (let input = receive_input() in
         if is_opposite input old_dir then
           failwith "maintain the old direction" else (* will be catched*)
-          let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
+          let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos will_grow in 
+          let new_grow = (if check_eat n_apple new_snake then 2 else 0) + (if grow>0 then grow-1 else grow) in
           if is_dead new_snake cursor_pos then game_over new_snake 
-          else play new_snake new_apple input)
+          else play new_snake new_apple input new_grow)
      with
      |exp -> (let input = old_dir in 
-              let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
+              let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos will_grow in 
+              let new_grow = (if check_eat n_apple new_snake then 2 else 0) + (if grow>0 then grow-1 else grow) in
               if is_dead new_snake cursor_pos then game_over new_snake
-              else play new_snake new_apple input))
+              else play new_snake new_apple input new_grow))
   in
-  play snake apple Left
+  play snake apple Left 0
 
 
 let main () = 
+  reset_terminal();
   resize (width+2) (height+5);
   ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Use WASD to change direction. Press enter to start \n");
   print_string[red] "> ";
