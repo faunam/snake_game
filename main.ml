@@ -66,11 +66,11 @@ let draw_apple =
 
 (** [row_top cursor_pos] is the y cordinate of the top line of the canvas.
     This value depends on current cursor position [cursor_pos]. *)
-let row_top cursor_pos =
-  let y = snd cursor_pos in
-  if y > height then
-    (max (y-height-2) 2)
-  else (y+3)
+let row_top cursor_pos = 3
+(* let y = snd cursor_pos in
+   if y > height then
+   (max (y-height-2) 2)
+   else (y+3) *)
 
 (** [draw_verti_edge w h] drows the vertical boundaries with height [h]. 
     The distance between two vertical lines is [w]. *)
@@ -134,10 +134,11 @@ let snake_remove_tail snake =
     canvas. [cursor_pos] determines the position of the canvas. The return takes
     the form of pair. *)
 let produce_random_pos cursor_pos =
-  let terminal_size = size() in 
-  let r_t = row_top cursor_pos in
-  (min (2 + Random.int (width-2)) (fst terminal_size), 
-   min (r_t+1 + Random.int (height-r_t)) ((snd terminal_size)-2))
+  (* let terminal_size = size() in 
+     let r_t = row_top cursor_pos in
+     (min (2 + Random.int (width-2)) (fst terminal_size), 
+     min (r_t+1 + Random.int (height-r_t)) ((snd terminal_size)-2)) *)
+  ((2 + Random.int (width-2)), (4 + Random.int (height-4)))
 
 (** [eat_apple apple snake] removes apple when snake head is at the same 
     location as the apple and creates a new apple in a random spot, then increases 
@@ -257,6 +258,7 @@ let play_game cursor_pos =
 
 
 let main () = 
+  resize (width+2) (height+5);
   ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Use WASD to change direction. Press enter to start \n");
   print_string[red] "> ";
   let cursor_pos = pos_cursor() in
