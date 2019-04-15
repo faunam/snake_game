@@ -1,0 +1,4 @@
+"Resource: /Users/fauma/ocaml/3110a6/main.ml": "\021^\2510\151\004\207\152l\253\002\132$\026\253\152"
+"Rule: ocaml: cmo* -> byte (%=main )": "\017}``\251\139\210\204\225<\000=\234\226\249\157"
+"Rule: ocaml: ml -> cmo & cmi (%=main )": "\194\243\243[\015\131\rL\r5p\193nv\176\235"
+"Rule: ocaml dependencies ml (%=main )": "\007L\132\207A\207\200j\255(%Vt\165\186\226"
