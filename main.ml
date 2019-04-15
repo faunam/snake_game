@@ -9,6 +9,7 @@ let getachar () =
   Unix.tcsetattr Unix.stdin Unix.TCSADRAIN termio;
   res
 
+(**[reset_terminal ()] resets the terminal to the state before the game begins. *)
 let reset_terminal () = 
   let termio = Unix.tcgetattr Unix.stdin in
   let new_ter =
@@ -17,25 +18,21 @@ let reset_terminal () =
 
 open ANSITerminal
 open Unix
-(*outputs a list of lists of the form [y, x1, x2] ordered by y (greatest to least).
-  y is a row that the snake appears on, x1 is the leftmost pixel and x2 is the 
-  rightmost pixel of the snake in that row*)
-(*let make_snake = 
-  failwith "unimplemented"
-  let make_apple = 
-  failwith "unimplemented"
-*)
-(*returns a string of length num filled with whitespace*) 
 
+(** Width of the canvas. *)
 let width = 78
+
+(** Height of the canvas. *)
 let height = 30
 
+(** Snake movement direction*)
 type direction =
   |Up
   |Down
   |Left
   |Right
 
+(** [whitespace num] is a string composed of only whitespace with [num]. *)
 let rec whitespace num = 
   if num = 1 then " " 
   else " " ^ whitespace (num-1)
@@ -56,39 +53,41 @@ let get_seg_xcorr seg =
 let snake_seg =
   "[]"
 
-(*draws snake segment on one row; len number of repetitions*)
+(** [draw_snake snake] draws [snake].*)
 let rec draw_snake snake = 
-  (* save_cursor(); *)
   match snake with
   |[] -> ()
   |h :: t -> set_cursor (get_seg_xcorr h) (get_seg_ycorr h);
     print_string[green] (snake_seg);draw_snake t
-(* restore_cursor() *)
 
+(** The format of the apple. *)
 let draw_apple = 
   "o" 
 
+(** [row_top cursor_pos] is the y cordinate of the top line of the canvas.
+    This value depends on current cursor position [cursor_pos]. *)
 let row_top cursor_pos =
   let y = snd cursor_pos in
   if y > height then
     (max (y-height-2) 2)
   else (y+3)
 
-(*this function goes row by row and if the snake or the apple are in the current row, 
-  it draws them and adds white space around them, and the board borders.*)
+(** [draw_verti_edge w h] drows the vertical boundaries with height [h]. 
+    The distance between two vertical lines is [w]. *)
 let rec draw_verti_edge w h = 
   let row = "|" ^ (whitespace (w)) ^ "|"
   in
   if h = 1 then (print_endline row; print_endline) 
   else (print_endline row; draw_verti_edge w (h-1))
 
-(**[draw_horiz_edge w] draws the horizontal bondrary of the board. *)
+(**[draw_horiz_edge w] draws the horizontal bondrary of the board with 
+   length [w]. *)
 let rec draw_horiz_edge w  = 
   if w = 1 then "-" 
   else "-" ^ draw_horiz_edge (w-1)
 
-(*w and h are the width and height of the playable area. so 0,0 is the first 
-  playable pixel and w,l is the last*)
+(** [make_board w h snake apple] draws the canvas with [snake] and [apple] 
+    inside. [w] and [h] are the width and height of the canvas. *)
 let make_board w h snake apple =
 
   print_endline (" " ^ draw_horiz_edge (w));
@@ -102,15 +101,6 @@ let make_board w h snake apple =
   print_string[blue] ("  Score: " ^ string_of_int(List.length snake) ^ whitespace(w-10));
   set_cursor (fst pos) ((snd pos)+4)
 
-(*checks if part of the snake is in the current row*)
-let check_snake row snake = 
-  if snake = [] then false
-  else row = List.nth (List.nth snake 0) 1
-
-(*checks if the apple is in the current row*)
-let check_apple row apple = 
-  row = snd(apple)
-
 (**[check_eat apple snake] checks whether [snake] can eat the [apple]. *)
 let check_eat apple snake =
   let head = get_snake_seg snake 0 in
@@ -120,13 +110,9 @@ let check_eat apple snake =
   let apple_y = snd apple in
   apple_x = head_x &&  apple_y = head_y ||
   (apple_x = (head_x+1) && apple_y = head_y)
-(**snake is a list (described in make_snake), apple is a tuple (x, y) of apple 
-   location this may not be the best way to implement snake and apple so we can 
-   change it if necessary. Maybe they can be included in the state variable st? 
-   I just added it now so that the function would return unit. 
-   Problem: the function prints forever right now and i can't figure out why*)
 
-
+(** [snake_add_head dir snake] adds a new segment to the head of [snake] 
+    following the direction [dir]. *)
 let snake_add_head (dir:direction) snake =
   match snake with
   |[] -> []
@@ -137,21 +123,25 @@ let snake_add_head (dir:direction) snake =
       |Left -> [x-2; y] :: snake
       |Right -> [x+2; y] :: snake
     end
-  |_ -> failwith "impossible"
+  |_ -> failwith "impossible" (** shouldn't be executed*)
 
+(** [snake_remove_tail snake] removes the last segment of [snake]. *)
 let snake_remove_tail snake = 
   if List.length snake = 0 then snake else
     snake |> List.rev |> List.tl |> List.rev
 
+(** [produce_random_pos cursor_pos] produces a random position inside the 
+    canvas. [cursor_pos] determines the position of the canvas. The return takes
+    the form of pair. *)
 let produce_random_pos cursor_pos =
   let terminal_size = size() in 
   let r_t = row_top cursor_pos in
   (min (2 + Random.int (width-2)) (fst terminal_size), 
    min (r_t+1 + Random.int (height-r_t)) ((snd terminal_size)-2))
-(** [eat_apple apple snake] deletes apple when snake head is at same location 
-    and creates a new apple in a random spot, then increases snake length by
-    two (for now). *)
-(* when should this function be called?*)
+
+(** [eat_apple apple snake] removes apple when snake head is at the same 
+    location as the apple and creates a new apple in a random spot, then increases 
+    snake length by two. *)
 let eat_apple apple snake dir cursor_pos=
   let new_apple = produce_random_pos cursor_pos in
   (* print_endline (string_of_int (fst new_apple) ^ "   " ^ string_of_int (snd new_apple)); *)
@@ -177,15 +167,17 @@ let eat_apple apple snake dir cursor_pos=
     let new_snake = snake @ new_seg in 
     make_board width height new_snake new_apple; (new_snake,new_apple)
 
+(** [is_dead snake cursor_pos] checks whether [snake] hits walls determined
+    by [cursor_pos]  or itself. *)
 let is_dead snake cursor_pos= 
   match snake with
   | [] -> false
   | [x; y] :: t -> y = row_top cursor_pos || y = (snd cursor_pos)-1 
                    || x <= 1 || x >= width || List.mem [x;y] t
   | _ -> false
-(**[move snake apple sl old_dir new_dir] moves the snake every [sl] seconds.
-   [old_dir] is the direction before a new direction button is pressed. 
-   [new_dir] is the new direction depends on which button is pressed -- 
+
+(**[move snake apple sl dir cursor_pos] moves the snake every [sl+0.2] seconds.
+   [dir] is the new direction depends on which button is pressed -- 
    "W" is Up, "S" is Down, "A" is Left, "D" is Right. *)
 let rec move snake apple (sl:float) dir cursor_pos=
   (* sleepf(sl); *)
@@ -195,13 +187,24 @@ let rec move snake apple (sl:float) dir cursor_pos=
     eat_apple apple new_snake dir cursor_pos else
     (make_board width height new_snake apple;(new_snake, apple))
 
+(** [receive_input ()] is the direction depends on the butten being pressed. *)
 let rec receive_input ()=
   let input = getachar() in
   match input with
   |'w' -> Up | 's' -> Down | 'a' -> Left | 'd' -> Right
   | _ -> receive_input();;
 
-(*prints a game over box over the last game board and resets terminal*)
+(** [is_opposite new_dir old_dir] checks whether the new direction is the 
+    opposite of the old one.*)
+let is_opposite new_dir old_dir = 
+  match new_dir with
+  |Up -> old_dir = Down
+  |Down -> old_dir = Up
+  |Left -> old_dir = Right
+  |Right -> old_dir = Left
+
+(** [game_over] prints a game over box over the last game board and 
+    resets terminal*)
 let game_over snake = 
   let pos = pos_cursor() in
   let box_w = 30 in 
@@ -227,6 +230,7 @@ let game_over snake =
 
   reset_terminal()
 
+(** [play_game cursor_pos] updates the canvas after each snake movement. *)
 let play_game cursor_pos =
   let pro_ran () = produce_random_pos cursor_pos in 
   let rand = pro_ran() in 
@@ -234,13 +238,15 @@ let play_game cursor_pos =
   let apple = (pro_ran()) in
   (* print_endline ((string_of_int (fst terminal_size)) ^"  "^ (string_of_int (snd terminal_size))); *)
   make_board width height snake apple;
-
+  (* receives the user input and moves the snake*)
   let rec play n_snake n_apple old_dir= 
     (try
        (let input = receive_input() in
-        let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
-        if is_dead new_snake cursor_pos then game_over new_snake 
-        else play new_snake new_apple input)
+        if is_opposite input old_dir then
+          failwith "maintain the old direction" else (* will be catched*)
+          let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
+          if is_dead new_snake cursor_pos then game_over new_snake 
+          else play new_snake new_apple input)
      with
      |exp -> (let input = old_dir in 
               let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos in 
