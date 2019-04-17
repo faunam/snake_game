@@ -40,6 +40,7 @@ type direction =
 
 (** [whitespace num] is a string composed of only whitespace with [num]. *)
 let rec whitespace num = 
+  if num = 0 then "" else
   if num = 1 then " " 
   else " " ^ whitespace (num-1)
 
