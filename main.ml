@@ -25,6 +25,12 @@ let width = 58
 (** Height of the canvas. *)
 let height = 20
 
+(** Height of the terminal. *)
+let ter_hei = height + 6
+
+(** Width of the terminal. *)
+let ter_wid = width + 2
+
 (** Snake movement direction*)
 type direction =
   |Up
@@ -64,13 +70,8 @@ let rec draw_snake snake =
 let draw_apple = 
   "o" 
 
-(** [row_top cursor_pos] is the y cordinate of the top line of the canvas.
-    This value depends on current cursor position [cursor_pos]. *)
-let row_top cursor_pos = 3
-(* let y = snd cursor_pos in
-   if y > height then
-   (max (y-height-2) 2)
-   else (y+3) *)
+(** y cordinate of the top line of the canvas.*)
+let row_top = 4
 
 (** [draw_verti_edge w h] drows the vertical boundaries with height [h]. 
     The distance between two vertical lines is [w]. *)
@@ -93,7 +94,7 @@ let make_board w h snake apple =
   print_endline (" " ^ draw_horiz_edge (w));
   draw_verti_edge w h;
   print_endline (" " ^ draw_horiz_edge (w));
-  let pos = pos_cursor() in
+  let pos = (1,26) in
   set_cursor (fst apple) (snd apple);
   print_string[red] (draw_apple);
   draw_snake snake;
@@ -130,22 +131,20 @@ let snake_remove_tail snake =
   if List.length snake = 0 then snake else
     snake |> List.rev |> List.tl |> List.rev
 
-(** [produce_random_pos cursor_pos] produces a random position inside the 
-    canvas. [cursor_pos] determines the position of the canvas. The return takes
-    the form of pair. *)
-let produce_random_pos cursor_pos =
+(** [produce_random_pos] produces a random position inside the canvas. *)
+let produce_random_pos ()=
   (* let terminal_size = size() in 
      let r_t = row_top cursor_pos in
      (min (2 + Random.int (width-2)) (fst terminal_size), 
      min (r_t+1 + Random.int (height-r_t)) ((snd terminal_size)-2)) *)
-  ((2 + Random.int (width-2)), (4 + Random.int (height-4)))
+  ((3 + Random.int (width-3)), (5 + Random.int (height-5)))
 
 (** [is_dead snake cursor_pos] checks whether [snake] hits walls determined
     by [cursor_pos]  or itself. *)
 let is_dead snake cursor_pos= 
   match snake with
   | [] -> false
-  | [x; y] :: t -> y = row_top cursor_pos || y = (snd cursor_pos)-1 
+  | [x; y] :: t -> y = 4 || y = (snd cursor_pos)-1 
                    || x <= 1 || x >= width || List.mem [x;y] t
   | _ -> false
 
@@ -155,10 +154,10 @@ let is_dead snake cursor_pos=
    grows by one segment in front.*)
 let rec move snake apple (sl:float) dir cursor_pos (will_grow:bool)=
   (* sleepf(sl); *)
-  set_cursor 1 (row_top cursor_pos);
+  set_cursor 1 row_top;
   let new_snake = if will_grow then snake |> snake_add_head dir
     else snake |> snake_add_head dir |> snake_remove_tail in
-  let new_apple = if check_eat apple new_snake then produce_random_pos cursor_pos
+  let new_apple = if check_eat apple new_snake then produce_random_pos()
     else apple in 
   make_board width height new_snake new_apple;(new_snake, new_apple)
 
@@ -181,7 +180,7 @@ let is_opposite new_dir old_dir =
 (** [game_over] prints a game over box over the last game board and 
     resets terminal*)
 let game_over snake = 
-  let pos = pos_cursor() in
+  let pos = (ter_wid, ter_hei) in
   let box_w = 30 in 
   let box_h = 5 in 
   set_cursor (width/2 - box_w/2) (height/2 + (box_h/2 -3));
@@ -209,10 +208,9 @@ let game_over snake =
 
 (** [play_game cursor_pos] updates the canvas after each snake movement. *)
 let play_game cursor_pos =
-  let pro_ran () = produce_random_pos cursor_pos in 
-  let rand = pro_ran() in 
-  let snake = [[fst rand; snd rand]] in
-  let apple = (pro_ran()) in
+  (* Random.init 10; *)
+  let snake = [[width/2; height/2]] in
+  let apple = produce_random_pos () in
   (* print_endline ((string_of_int (fst terminal_size)) ^"  "^ (string_of_int (snd terminal_size))); *)
   make_board width height snake apple;
 
@@ -235,16 +233,16 @@ let play_game cursor_pos =
               let new_grow = (if check_eat n_apple new_snake then 2 else 0) + (if grow>0 then grow-1 else grow) in
               if is_dead new_snake cursor_pos then game_over new_snake
               else play new_snake new_apple input new_grow))
-  in
+  in 
   play snake apple Left 0
 
 
 let main () = 
   reset_terminal();
-  resize (width+2) (height+5);
+  resize ter_wid ter_hei;
   ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Use WASD to change direction. Press enter to start \n");
   print_string[red] "> ";
-  let cursor_pos = pos_cursor() in
+  let cursor_pos = (ter_wid, ter_hei) in
   (* print_endline (string_of_int (fst cursor_pos) ^ "   " ^ string_of_int (snd cursor_pos)); *)
   match read_line () with
   | exception _ -> ()
