@@ -9,7 +9,8 @@ let getachar () =
   Unix.tcsetattr Unix.stdin Unix.TCSADRAIN termio;
   res
 
-(**[reset_terminal ()] resets the terminal to the state before the game begins. *)
+(**[reset_terminal ()] resets the terminal to the state before the game begins.
+ *)
 let reset_terminal () = 
   let termio = Unix.tcgetattr Unix.stdin in
   let new_ter =
@@ -52,7 +53,8 @@ let get_snake_seg snake i=
 let get_seg_ycorr seg =
   List.nth seg 1
 
-(**[get_seg_xcorr seg] gets the leftmost x corrdinate of the snake segment [seg]. *)
+(**[get_seg_xcorr seg] gets the leftmost x corrdinate of the snake segment 
+    [seg]. *)
 let get_seg_xcorr seg =
   List.nth seg 0
 
@@ -100,7 +102,8 @@ let make_board w h snake apple =
   print_string[red] (draw_apple);
   draw_snake snake;
   set_cursor (fst pos) ((snd pos)+1);
-  print_string[blue] ("  Score: " ^ string_of_int(List.length snake) ^ whitespace(w-10));
+  print_string[blue] ("  Score: " ^ string_of_int(List.length snake) ^ 
+    whitespace(w-10));
   set_cursor (fst pos) ((snd pos)+4)
 
 (**[check_eat apple snake] checks whether [snake] can eat the [apple]. *)
@@ -189,8 +192,10 @@ let game_over snake =
 
   let rec vert xpos ypos h = 
     set_cursor xpos ypos;
-    if h = 1 then (print_endline ("|" ^ (whitespace (box_w)) ^ "|"); print_endline) 
-    else (print_endline ("|" ^ (whitespace (box_w)) ^ "|"); vert xpos (ypos+1) (h-1))
+    if h = 1 then (print_endline ("|" ^ (whitespace (box_w)) ^ "|"); 
+      print_endline) 
+    else (print_endline ("|" ^ (whitespace (box_w)) ^ "|"); 
+      vert xpos (ypos+1) (h-1))
   in
   vert (width/2 -box_w/2) (height/2 + (box_h/2 -2)) 5;
 
@@ -205,14 +210,17 @@ let game_over snake =
 
   reset_terminal()
 
-(* so check eat will check if snake is on apple i guess, and then eat will create a new apple, move snake onto tile where apple was, and add 2 to grow*)
+(** so check eat will check if snake is on apple i guess, and then eat will 
+    create a new apple, move snake onto tile where apple was, and add 2 to grow. 
+*)
 
 (** [play_game cursor_pos] updates the canvas after each snake movement. *)
 let play_game cursor_pos =
   (* Random.init 10; *)
   let snake = [[width/2; height/2]] in
   let apple = produce_random_pos () in
-  (* print_endline ((string_of_int (fst terminal_size)) ^"  "^ (string_of_int (snd terminal_size))); *)
+  (* print_endline ((string_of_int (fst terminal_size)) ^"  "^ 
+  (string_of_int (snd terminal_size))); *)
   make_board width height snake apple;
 
   (* receives the user input and moves the snake*)
@@ -224,14 +232,18 @@ let play_game cursor_pos =
        (let input = receive_input() in
         if is_opposite input old_dir then
           failwith "maintain the old direction" else (* will be catched*)
-          let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos will_grow in 
-          let new_grow = (if check_eat n_apple new_snake then 2 else 0) + (if grow>0 then grow-1 else grow) in
+          let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos 
+            will_grow in 
+          let new_grow = (if check_eat n_apple new_snake then 2 else 0) + 
+            (if grow>0 then grow-1 else grow) in
           if is_dead new_snake cursor_pos then game_over new_snake 
           else play new_snake new_apple input new_grow)
      with
      |exp -> (let input = old_dir in 
-              let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos will_grow in 
-              let new_grow = (if check_eat n_apple new_snake then 2 else 0) + (if grow>0 then grow-1 else grow) in
+              let (new_snake, new_apple) = move n_snake n_apple 0.1 input 
+                cursor_pos will_grow in 
+              let new_grow = (if check_eat n_apple new_snake then 2 else 0) + 
+                (if grow>0 then grow-1 else grow) in
               if is_dead new_snake cursor_pos then game_over new_snake
               else play new_snake new_apple input new_grow))
   in 
@@ -241,10 +253,12 @@ let play_game cursor_pos =
 let main () = 
   reset_terminal();
   resize ter_wid ter_hei;
-  ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Use WASD to change direction. Press enter to start \n");
+  ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Use WASD to change 
+    direction. Press enter to start \n");
   print_string[red] "> ";
   let cursor_pos = (ter_wid, ter_hei) in
-  (* print_endline (string_of_int (fst cursor_pos) ^ "   " ^ string_of_int (snd cursor_pos)); *)
+  (* print_endline (string_of_int (fst cursor_pos) ^ "   " ^ 
+    string_of_int (snd cursor_pos)); *)
   match read_line () with
   | exception _ -> ()
   | x -> play_game cursor_pos
