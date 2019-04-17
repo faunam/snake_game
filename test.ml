@@ -98,6 +98,24 @@ let snake_remove_tail_tests = [
 
 ]
 
+let make_is_opposite_test
+  (name : string)
+  (new_dir : direction)
+  (old_dir : direction)
+  (expected_output : bool) : test =
+  name >:: (fun _ ->
+    assert_equal expected_output (is_opposite new_dir old_dir))
+
+let is_opposite_tests = [
+  make_is_opposite_test "is_opposite up down" Up Down true;
+  make_is_opposite_test "is_opposite up left" Up Left false;
+  make_is_opposite_test "is_opposite up right" Up Right false;
+  make_is_opposite_test "is_opposite left right" Left Right true;
+  make_is_opposite_test "is_opposite right left" Right Left true;
+  make_is_opposite_test "is_opposite down up" Down Up true;
+  make_is_opposite_test "is_opposite right up"  Right Up false
+]
+
 let tests = 
  "test suite  for A6" >::: List.flatten [
    whitespace_tests;
@@ -107,6 +125,7 @@ let tests =
    check_eat_tests;
    snake_add_head_tests;
    snake_remove_tail_tests;
+   is_opposite_tests;
   
   ]
 
