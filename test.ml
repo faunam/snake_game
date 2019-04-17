@@ -43,12 +43,38 @@ let get_seg_ycorr_tests = [
   make_get_seg_ycorr_test "get_seg_ycorr 2" [1;2] 2;
 ] 
 
+let make_get_seg_xcorr_test
+  (name : string)
+  (seg: 'a list)
+  (expected_output : 'a) : test =
+  name >:: (fun _ ->
+    assert_equal expected_output (get_seg_xcorr seg))
+
+let get_seg_xcorr_tests = [
+  make_get_seg_xcorr_test "get_seg_xcorr 1" [1;2] 1;
+]
+
+let make_check_eat_test
+  (name : string)
+  (apple : int * int)
+  (snake : int list list)
+  (expected_output : bool) : test =
+  name >:: (fun _ ->
+    assert_equal expected_output (check_eat apple snake))
+
+let check_eat_tests = [
+  make_check_eat_test "check_eat true" (1,1) [[1;1];[2;2]] true;
+  make_check_eat_test "check_eat false" (3,3) [[1;1];[2;2]] false;
+]
+
 let tests = 
  "test suite  for A6" >::: List.flatten [
    whitespace_tests;
    get_snake_seg_tests;
    get_seg_ycorr_tests;
-
+   get_seg_xcorr_tests;
+   check_eat_tests;
+  
   ]
 
 let _ = run_test_tt_main tests
