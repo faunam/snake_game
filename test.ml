@@ -32,10 +32,22 @@ let get_snake_seg_tests = [
     [4;4];
 ]
 
+let make_get_seg_ycorr_test
+  (name :  string)
+  (seg : 'a list)
+  (expected_output : 'a) : test =
+  name  >:: (fun  _ ->
+    assert_equal expected_output (get_seg_ycorr seg))
+
+let get_seg_ycorr_tests = [
+  make_get_seg_ycorr_test "get_seg_ycorr 2" [1;2] 2;
+] 
+
 let tests = 
  "test suite  for A6" >::: List.flatten [
    whitespace_tests;
    get_snake_seg_tests;
+   get_seg_ycorr_tests;
 
   ]
 
