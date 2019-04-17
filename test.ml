@@ -82,6 +82,22 @@ let snake_add_head_tests = [
   make_snake_add_head_test "snake_add_head right" Right [[3;3]] [[5;3];[3;3]]
 ]
 
+let make_snake_remove_tail_test
+  (name : string)
+  (snake : int list list)
+  (expected_output : int list list) : test =
+  name >:: (fun _ ->
+    assert_equal expected_output (snake_remove_tail snake))
+
+let snake_remove_tail_tests = [
+  make_snake_remove_tail_test "snake_remove_tail 0"[] [];
+  make_snake_remove_tail_test "snake_remove_tail 1" [[1;1]] [];
+  make_snake_remove_tail_test "snake_remove_tail 2" [[1;1];[2;2]] [[1;1]];
+  make_snake_remove_tail_test "snake_remove_tail 5" [[1;1];[2;2];[3;3];[4;4];
+    [5;5]] [[1;1];[2;2];[3;3];[4;4]]
+
+]
+
 let tests = 
  "test suite  for A6" >::: List.flatten [
    whitespace_tests;
@@ -90,6 +106,7 @@ let tests =
    get_seg_xcorr_tests;
    check_eat_tests;
    snake_add_head_tests;
+   snake_remove_tail_tests;
   
   ]
 
