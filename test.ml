@@ -41,6 +41,8 @@ let make_get_seg_ycorr_test
 
 let get_seg_ycorr_tests = [
   make_get_seg_ycorr_test "get_seg_ycorr 2" [1;2] 2;
+  make_get_seg_ycorr_test "get_seg_ycorr 45" [5;45] 45;
+  make_get_seg_ycorr_test "get_seg_ycorr 50003" [5;50003] 50003;
 ] 
 
 let make_get_seg_xcorr_test
@@ -52,6 +54,8 @@ let make_get_seg_xcorr_test
 
 let get_seg_xcorr_tests = [
   make_get_seg_xcorr_test "get_seg_xcorr 1" [1;2] 1;
+  make_get_seg_xcorr_test "get_seg_xcorr 78" [78;23] 78;
+  make_get_seg_xcorr_test "get_seg_xcorr 12345" [12345; 203] 12345;
 ]
 
 let make_check_eat_test
@@ -65,6 +69,9 @@ let make_check_eat_test
 let check_eat_tests = [
   make_check_eat_test "check_eat true" (1,1) [[1;1];[2;2]] true;
   make_check_eat_test "check_eat false" (3,3) [[1;1];[2;2]] false;
+  make_check_eat_test "check_eat false" (2,2) [[1;1];[2;2]] false;
+  make_check_eat_test "check_eat true" (1,1) [[1;1]] true;
+  make_check_eat_test "check_eat false" (1,2) [[1;3]; [1;4]] false;
 ]
 
 let make_snake_add_head_test 
