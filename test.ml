@@ -16,9 +16,26 @@ let whitespace_tests = [
   make_whitespace_test "whitespace 7" 7 "       ";
 ]
 
+let make_get_snake_seg_test
+  (name : string)
+  (snake : 'a list)
+  (i : int)
+  (expected_output : 'a) : test =
+  name >:: (fun  _ -> 
+    assert_equal expected_output (get_snake_seg snake i))
+
+let get_snake_seg_tests = [
+  make_get_snake_seg_test "get_snake_seg 0" [[1;1]] 0 [1;1];
+  make_get_snake_seg_test "get_snake_seg 1" [[1;1];[2;2]] 1 [2;2];
+  make_get_snake_seg_test "get_snake_seg 0" [[1;1];[2;2]] 0 [1;1];
+  make_get_snake_seg_test "get_snake_seg 3" [[1;1];[2;2];[3;3];[4;4];[5;5]] 3 
+    [4;4];
+]
+
 let tests = 
  "test suite  for A6" >::: List.flatten [
    whitespace_tests;
+   get_snake_seg_tests;
 
   ]
 
