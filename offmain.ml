@@ -9,6 +9,14 @@ let getachar () =
   Unix.tcsetattr Unix.stdin Unix.TCSADRAIN termio;
   res
 
+(**[reset_terminal ()] resets the terminal to the state before the game begins.
+*)
+let reset_terminal () = 
+  let termio = Unix.tcgetattr Unix.stdin in
+  let new_ter =
+    { termio with Unix.c_icanon = true; Unix.c_vmin = 1; Unix.c_vtime=0} in
+  Unix.tcsetattr Unix.stdin Unix.TCSADRAIN new_ter
+
 open ANSITerminal
 open Unix
 
