@@ -1,4 +1,3 @@
-open Offmain
 open ANSITerminal
 open Unix
 
@@ -15,7 +14,7 @@ let ter_hei = height + 6
 let ter_wid = width + 2
 
 let main () = 
-  Offmain.reset_terminal();
+  State.reset_terminal();
   resize ter_wid ter_hei;
   ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Use WASD to change 
     direction. Press enter to start \n");
@@ -25,6 +24,6 @@ let main () =
      string_of_int (snd cursor_pos)); *)
   match read_line () with
   | exception _ -> ()
-  | x -> Offmain.play_game cursor_pos
+  | x -> State.play_game cursor_pos
 
 let () = main ()
