@@ -91,26 +91,9 @@ let row_top = 4
 let produce_random_pos ()=
   ((3 + Random.int (width-3)), (5 + Random.int (height-5)))
 
-(**[veri_enemies pos num] draws the black vertical enemies at [pos] 
-   with length [num]. *)
-let rec veri_enemies pos num =
-  if num > 0 then
-    let (x,y) = pos in
-    set_cursor x y;
-    print_string[on_black] (" ");
-    veri_enemies (x, (y+1)) (num-1)
-  else ()
-
-(**[hori_enemies pos num] draws the black horizontal enemies at [pos] 
-   with length [num]. *)
-let hori_enemies pos num =
-  let (x,y) = pos in
-  set_cursor x y;
-  print_string[on_black] (whitespace num)
-
 (**[get_all_enem_pos is_hor pos num acc] are all positions of enemies with 
-   starting position [pos] and length [num]. if [is_hor] is true, then enemies are 
-   horizontal otherwise vertical. *)
+   starting position [pos] and length [num]. if [is_hor] is true, then enemies 
+   are horizontal otherwise vertical. *)
 let rec get_all_enem_pos is_hor pos num acc=
   if num > 0 then
     let (x,y) = pos in
@@ -123,19 +106,21 @@ let rec get_all_enem_pos is_hor pos num acc=
    [apple] overlaps with [enemies]. *)
 let check_conflicts snake apple enemies =
   let snake_head = get_snake_head snake in
-  List.mem snake_head enemies || List.mem apple enemies
+  (List.mem snake_head enemies || List.mem apple enemies)
 
 (**[make_enemies snake apple is_hor enemies] are positions of all enemies. *)
 let rec make_enemies snake apple is_hor enemies=
   let rand = 1+Random.int 5 in
+  (* new-produced enemies position *)
   let enem_pos = produce_random_pos() in
+  (* all enemies positions *)
   let enemies_pos = get_all_enem_pos is_hor enem_pos rand enemies in
   if check_conflicts snake apple enemies_pos 
   (*cannot make enemies at the same positon as snake head or apple*)
   then make_enemies snake apple is_hor enemies
   else enemies_pos
 
-(** [draw_verti_edge w h] drows the vertical boundaries with height [h]. 
+(**[draw_verti_edge w h] drows the vertical boundaries with height [h]. 
     The distance between two vertical lines is [w]. *)
 let rec draw_verti_edge w h = 
   let row = "|" ^ (whitespace (w)) ^ "|"
@@ -155,7 +140,7 @@ let rec draw_enemies = function
   | (x, y) :: t -> set_cursor x y;
     print_string[on_black] (" "); draw_enemies t
 
-(** [make_board w h snake apple] draws the canvas with [snake] and [apple] 
+(**[make_board w h snake apple] draws the canvas with [snake] and [apple] 
     inside. [w] and [h] are the width and height of the canvas. *)
 let make_board w h snake apple enemies=
 
@@ -182,7 +167,7 @@ let check_eat apple snake =
   apple_x = head_x &&  apple_y = head_y ||
   (apple_x = (head_x+1) && apple_y = head_y)
 
-(** [snake_add_head dir snake] adds a new segment to the head of [snake] 
+(**[snake_add_head dir snake] adds a new segment to the head of [snake] 
     following the direction [dir]. *)
 let snake_add_head (dir:direction) snake =
   match snake with
@@ -196,16 +181,16 @@ let snake_add_head (dir:direction) snake =
     end
   |_ -> failwith "impossible" (** shouldn't be executed*)
 
-(** [snake_remove_tail snake] removes the last segment of [snake]. *)
+(**[snake_remove_tail snake] removes the last segment of [snake]. *)
 let snake_remove_tail snake = 
   if List.length snake = 0 then snake else
     snake |> List.rev |> List.tl |> List.rev
 
-(** [produce_random_pos] produces a random position inside the canvas. *)
+(**[produce_random_pos] produces a random position inside the canvas. *)
 let produce_random_pos ()=
   ((3 + Random.int (width-3)), (5 + Random.int (height-5)))
 
-(** [is_dead snake enemies] checks whether [snake] hits walls or itself or
+(**[is_dead snake enemies] checks whether [snake] hits walls or itself or
     [enemies]. *)
 let is_dead snake enemies= 
   match snake with
@@ -233,20 +218,20 @@ let new_state snake apple (sl:float) dir (will_grow:bool)=
    new_st*)
 let move snake apple (sl:float) dir (will_grow:bool) enemies=
   let (s, a, e) = new_state snake apple sl dir will_grow in
-  let enemies' = if e then make_enemies snake apple true enemies else enemies in
+  let enemies' = if e then make_enemies s a true enemies else enemies in
   make_board width height s a enemies';(s,a,enemies')
 
-(** [time_delay snake] is the speed depending on the length of [snake]. Large
+(**[time_delay snake] is the speed depending on the length of [snake]. Large
     value means small speed. *)
 let time_delay snake =
   let len = List.length snake in
-  if len <= 10 then 2
+  if len <= 10 then 5
   else if len <= 20 then 4
   else if len <= 30 then 3
   else if len <= 40 then 2
   else 1
 
-(** [receive_input snake] is the direction depends on the butten being pressed. *)
+(**[receive_input snake] is the direction depends on the butten being pressed. *)
 let rec receive_input snake=
   let time = time_delay snake in
   let input = getachar time in
@@ -254,7 +239,7 @@ let rec receive_input snake=
   |'w' -> Up | 's' -> Down | 'a' -> Left | 'd' -> Right
   | _ -> receive_input snake;;
 
-(** [is_opposite new_dir old_dir] checks whether the new direction is the 
+(**[is_opposite new_dir old_dir] checks whether the new direction is the 
     opposite of the old one.*)
 let is_opposite new_dir old_dir = 
   match new_dir with

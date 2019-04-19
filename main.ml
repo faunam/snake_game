@@ -19,11 +19,8 @@ let main () =
   ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Use WASD to change 
     direction. Press enter to start \n");
   print_string[red] "> ";
-  let cursor_pos = (ter_wid, ter_hei) in
-  (* print_endline (string_of_int (fst cursor_pos) ^ "   " ^ 
-     string_of_int (snd cursor_pos)); *)
   match read_line () with
   | exception _ -> ()
-  | x -> State.play_game cursor_pos
+  | x -> State.play_game ()
 
 let () = main ()

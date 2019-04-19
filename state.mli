@@ -12,7 +12,7 @@ type direction =
 val reset_terminal : unit -> unit
 
 (** [play_game cursor_pos] updates the canvas after each snake movement. *)
-val play_game : int * int -> unit
+val play_game : unit -> unit
 
 (** [whitespace num] is a string composed of only whitespace with [num]. *)
 val whitespace : int -> string
@@ -43,4 +43,4 @@ val is_opposite : direction -> direction -> bool
 
 (** [is_dead snake cursor_pos] checks whether [snake] hits walls determined
     by [cursor_pos]  or itself. *)
-val is_dead : int list list -> int * int -> bool
+val is_dead : int list list -> (int * int) list-> bool
