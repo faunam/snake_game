@@ -212,16 +212,18 @@ let new_state snake apple (sl:float) dir cursor_pos (will_grow:bool)=
   set_cursor 1 row_top;
   let new_snake = if will_grow then snake |> snake_add_head dir
     else snake |> snake_add_head dir |> snake_remove_tail in
-  let new_apple = if check_eat apple new_snake then produce_random_pos()
+  let is_eat = check_eat apple new_snake in
+  let new_apple = if is_eat then produce_random_pos()
     else apple in 
-  (new_snake, new_apple)
+  (new_snake, new_apple, is_eat)
 
 
 (**[new_state snake apple sl dir cursor_pos] draws the board according to 
    new_st*)
 let move snake apple (sl:float) dir cursor_pos (will_grow:bool) temp=
-  let new_st = new_state snake apple sl dir cursor_pos will_grow in
-  make_board width height (fst new_st) (snd new_st) temp;new_st
+  let (s, a, e) = new_state snake apple sl dir cursor_pos will_grow in
+  let temp' = if e then make_enemies s a true else temp in
+  make_board width height s a temp';(s,a,temp')
 
 (** [time_delay snake] is the speed depending on the length of [snake]. Large
     value means small speed. *)
@@ -299,23 +301,21 @@ let play_game cursor_pos =
     let will_grow = grow > 0 in
     (try
        (let input = receive_input snake in
-        let is_eat = check_eat n_apple n_snake in
-        let temp' = if is_eat then (print_endline("aa");make_enemies n_snake n_apple true) else temp in
         if is_opposite input old_dir then
           failwith "maintain the old direction" else (* will be catched*)
-          let (new_snake, new_apple) = 
-            move n_snake n_apple 0.1 input cursor_pos will_grow temp' in 
+          let (new_snake, new_apple, temp') = 
+            move n_snake n_apple 0.1 input cursor_pos will_grow temp in 
           let new_grow = (if check_eat n_apple new_snake then 2 else 0) + 
                          (if grow>0 then grow-1 else grow) in
           if is_dead new_snake cursor_pos then game_over new_snake 
           else play new_snake new_apple input new_grow temp')
      with
      |exp -> (let input = old_dir in 
-              let (new_snake, new_apple) = 
+              let (new_snake, new_apple, temp') = 
                 move n_snake n_apple 0.1 input cursor_pos will_grow temp in 
               let new_grow = (if check_eat n_apple new_snake then 2 else 0) + 
                              (if grow>0 then grow-1 else grow) in
               if is_dead new_snake cursor_pos then game_over new_snake
-              else play new_snake new_apple input new_grow temp))
+              else play new_snake new_apple input new_grow temp'))
   in 
   play snake apple Left 0 (make_enemies snake apple true)
