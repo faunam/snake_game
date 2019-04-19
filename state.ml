@@ -1,10 +1,10 @@
-(**[getachar ()] gets one char (no matter what it is) from the imput and then 
+(**[getachar sl] gets one char (no matter what it is) from the imput and then 
     returns. *)
-let getachar () =
+let getachar sl =
   let termio = Unix.tcgetattr Unix.stdin in
   let () =
     Unix.tcsetattr Unix.stdin Unix.TCSADRAIN
-      { termio with Unix.c_icanon = false; Unix.c_vmin = 0; Unix.c_vtime=2} in
+      { termio with Unix.c_icanon = false; Unix.c_vmin = 0; Unix.c_vtime = sl} in
   let res = input_char stdin in
   Unix.tcsetattr Unix.stdin Unix.TCSADRAIN termio;
   res
@@ -62,6 +62,17 @@ let get_seg_xcorr seg =
 let snake_seg =
   "[]"
 
+let get_snake_head snake =
+  let head = List.hd snake in
+  (List.hd head, List.nth head 1)
+
+(** [draw_snake snake] draws [snake].*)
+let rec draw_snake snake = 
+  match snake with
+  |[] -> ()
+  |h :: t -> set_cursor (get_seg_xcorr h) (get_seg_ycorr h);
+    print_string[green] (snake_seg);draw_snake t
+
 (** [draw_snake snake] draws [snake].*)
 let rec draw_snake snake = 
   match snake with
@@ -75,6 +86,46 @@ let draw_apple =
 
 (** y cordinate of the top line of the canvas.*)
 let row_top = 4
+
+(** [produce_random_pos] produces a random position inside the canvas. *)
+let produce_random_pos ()=
+  ((3 + Random.int (width-3)), (5 + Random.int (height-5)))
+
+let rec veri_enemies pos num =
+  if num > 0 then
+    let (x,y) = pos in
+    set_cursor x y;
+    print_string[on_black] (" ");
+    veri_enemies (x, (y+1)) (num-1)
+  else ()
+
+let hori_enemies pos num =
+  let (x,y) = pos in
+  set_cursor x y;
+  print_string[on_black] (whitespace num)
+
+let rec get_all_enem_pos is_hor pos num acc=
+  if num > 0 then
+    let (x,y) = pos in
+    let acc' = (x,y)::acc in
+    if is_hor then get_all_enem_pos is_hor ((x+1),y) (num-1) acc'
+    else get_all_enem_pos is_hor (x, (y+1)) (num-1) acc'
+  else acc
+
+let check_conflicts snake apple is_hor pos num =
+  let enem = get_all_enem_pos is_hor pos num [] in
+  let snake_head = get_snake_head snake in
+  List.mem snake_head enem
+
+
+let rec make_enemies snake apple is_hor =
+  let rand = 1+Random.int 5 in
+  let enem_pos = produce_random_pos() in
+  fun ()->
+    if check_conflicts snake apple is_hor enem_pos rand
+    then make_enemies snake apple is_hor ()
+    else if is_hor then hori_enemies enem_pos rand
+    else veri_enemies enem_pos rand
 
 (** [draw_verti_edge w h] drows the vertical boundaries with height [h]. 
     The distance between two vertical lines is [w]. *)
@@ -92,7 +143,7 @@ let rec draw_horiz_edge w  =
 
 (** [make_board w h snake apple] draws the canvas with [snake] and [apple] 
     inside. [w] and [h] are the width and height of the canvas. *)
-let make_board w h snake apple =
+let make_board w h snake apple temp=
 
   print_endline (" " ^ draw_horiz_edge (w));
   draw_verti_edge w h;
@@ -101,6 +152,7 @@ let make_board w h snake apple =
   set_cursor (fst apple) (snd apple);
   print_string[red] (draw_apple);
   draw_snake snake;
+  temp();
   set_cursor (fst pos) ((snd pos)+1);
   print_string[blue] ("  Score: " ^ string_of_int(List.length snake) ^ 
                       whitespace(w-10));
@@ -167,16 +219,27 @@ let new_state snake apple (sl:float) dir cursor_pos (will_grow:bool)=
 
 (**[new_state snake apple sl dir cursor_pos] draws the board according to 
    new_st*)
-let move snake apple (sl:float) dir cursor_pos (will_grow:bool)=
+let move snake apple (sl:float) dir cursor_pos (will_grow:bool) temp=
   let new_st = new_state snake apple sl dir cursor_pos will_grow in
-  make_board width height (fst new_st) (snd new_st);new_st
+  make_board width height (fst new_st) (snd new_st) temp;new_st
 
-(** [receive_input ()] is the direction depends on the butten being pressed. *)
-let rec receive_input ()=
-  let input = getachar() in
+(** [time_delay snake] is the speed depending on the length of [snake]. Large
+    value means small speed. *)
+let time_delay snake =
+  let len = List.length snake in
+  if len <= 10 then 5
+  else if len <= 20 then 4
+  else if len <= 30 then 3
+  else if len <= 40 then 2
+  else 1
+
+(** [receive_input snake] is the direction depends on the butten being pressed. *)
+let rec receive_input snake=
+  let time = time_delay snake in
+  let input = getachar time in
   match input with
   |'w' -> Up | 's' -> Down | 'a' -> Left | 'd' -> Right
-  | _ -> receive_input();;
+  | _ -> receive_input snake;;
 
 (** [is_opposite new_dir old_dir] checks whether the new direction is the 
     opposite of the old one.*)
@@ -227,30 +290,32 @@ let play_game cursor_pos =
   let apple = produce_random_pos () in
   (* print_endline ((string_of_int (fst terminal_size)) ^"  "^ 
      (string_of_int (snd terminal_size))); *)
-  make_board width height snake apple;
+  make_board width height snake apple (fun ()->());
 
   (* receives the user input and moves the snake*)
   (*[grow] is the number of iterations the snake should grow, incremented (by 2) 
     by eating an apple. decreases by one each turn the snake grows.*)
-  let rec play n_snake n_apple old_dir (grow:int) = 
+  let rec play n_snake n_apple old_dir (grow:int) temp= 
     let will_grow = grow > 0 in
     (try
-       (let input = receive_input() in
+       (let input = receive_input snake in
+        let is_eat = check_eat n_apple n_snake in
+        let temp' = if is_eat then (print_endline("aa");make_enemies n_snake n_apple true) else temp in
         if is_opposite input old_dir then
           failwith "maintain the old direction" else (* will be catched*)
-          let (new_snake, new_apple) = move n_snake n_apple 0.1 input cursor_pos 
-              will_grow in 
+          let (new_snake, new_apple) = 
+            move n_snake n_apple 0.1 input cursor_pos will_grow temp' in 
           let new_grow = (if check_eat n_apple new_snake then 2 else 0) + 
                          (if grow>0 then grow-1 else grow) in
           if is_dead new_snake cursor_pos then game_over new_snake 
-          else play new_snake new_apple input new_grow)
+          else play new_snake new_apple input new_grow temp')
      with
      |exp -> (let input = old_dir in 
-              let (new_snake, new_apple) = move n_snake n_apple 0.1 input 
-                  cursor_pos will_grow in 
+              let (new_snake, new_apple) = 
+                move n_snake n_apple 0.1 input cursor_pos will_grow temp in 
               let new_grow = (if check_eat n_apple new_snake then 2 else 0) + 
                              (if grow>0 then grow-1 else grow) in
               if is_dead new_snake cursor_pos then game_over new_snake
-              else play new_snake new_apple input new_grow))
+              else play new_snake new_apple input new_grow temp))
   in 
-  play snake apple Left 0
+  play snake apple Left 0 (make_enemies snake apple true)
