@@ -44,3 +44,7 @@ val is_opposite : direction -> direction -> bool
 (** [is_dead snake cursor_pos] checks whether [snake] hits walls determined
     by [cursor_pos]  or itself. *)
 val is_dead : int list list -> (int * int) list-> bool
+
+(** [check_conflicts snake apple enemies] checks whether the [snake] head or 
+    [apple] overlaps with [enemies]. *)
+val check_conflicts : 'a list list -> 'a * 'a -> ('a * 'a) list -> bool
