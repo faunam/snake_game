@@ -138,7 +138,7 @@ let rec draw_horiz_edge w  =
 let rec draw_enemies = function
   | [] -> ()
   | (x, y) :: t -> set_cursor x y;
-    print_string[on_black] (" "); draw_enemies t
+    print_string[blue] ("*"); draw_enemies t
 
 (**[make_board w h snake apple] draws the canvas with [snake] and [apple] 
     inside. [w] and [h] are the width and height of the canvas. *)
@@ -248,9 +248,16 @@ let is_opposite new_dir old_dir =
   |Left -> old_dir = Right
   |Right -> old_dir = Left
 
+(*only have local high score if theres a way to lose points but keep playing*)
+(**[update_h_score] holds the value of the high score for this session of the game. 
+   It updates that value if the current score is greater.*)
+let update_h_score old_sc new_sc  = 
+  if new_sc > old_sc then new_sc
+  else old_sc
+
 (** [game_over] prints a game over box over the last game board and 
     resets terminal*)
-let game_over snake = 
+let game_over snake h_score = 
   let pos = (ter_wid, ter_hei) in
   let box_w = 30 in 
   let box_h = 5 in 
@@ -271,8 +278,9 @@ let game_over snake =
 
   set_cursor (width/2 -4) (height/2 + (box_h/2 -1 ));
   print_string[red] ("GAME OVER ");
-  set_cursor (width/2 -4) (height/2 + (box_h/2 + 1));
-  print_string[blue] ("Score: " ^ string_of_int(List.length snake));
+  set_cursor (width/2 - 10) (height/2 + (box_h/2 + 1));
+  print_string[blue] ("Score: " ^ string_of_int (List.length snake) ^ 
+                      ", High Score: " ^ string_of_int(h_score));
   set_cursor (fst pos) ((snd pos)+4);
 
   reset_terminal()
@@ -293,7 +301,7 @@ let play_game () =
   (* receives the user input and moves the snake*)
   (*[grow] is the number of iterations the snake should grow, incremented (by 2) 
     by eating an apple. decreases by one each turn the snake grows.*)
-  let rec play n_snake n_apple old_dir (grow:int) enemies= 
+  let rec play n_snake n_apple old_dir (grow:int) enemies h_score= 
     let will_grow = grow > 0 in
     (try
        (let input = receive_input snake in
@@ -303,15 +311,17 @@ let play_game () =
             move n_snake n_apple 0.1 input will_grow enemies in 
           let new_grow = (if check_eat n_apple new_snake then 2 else 0) + 
                          (if grow>0 then grow-1 else grow) in
-          if is_dead new_snake enemies then game_over new_snake 
-          else play new_snake new_apple input new_grow enemies')
+          let new_h_sc = update_h_score h_score (List.length new_snake) in 
+          if is_dead new_snake enemies then game_over new_snake new_h_sc
+          else play new_snake new_apple input new_grow enemies' new_h_sc)
      with
      |exp -> (let input = old_dir in 
               let (new_snake, new_apple, enemies') = 
                 move n_snake n_apple 0.1 input will_grow enemies in 
               let new_grow = (if check_eat n_apple new_snake then 2 else 0) + 
                              (if grow>0 then grow-1 else grow) in
-              if is_dead new_snake enemies then game_over new_snake
-              else play new_snake new_apple input new_grow enemies'))
+              let new_h_sc = update_h_score h_score (List.length new_snake) in 
+              if is_dead new_snake enemies then game_over new_snake new_h_sc
+              else play new_snake new_apple input new_grow enemies' new_h_sc))
   in 
-  play snake apple Left 0 (make_enemies snake apple true [])
+  play snake apple Left 0 (make_enemies snake apple true []) 0
