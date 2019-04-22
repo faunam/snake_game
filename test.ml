@@ -126,27 +126,40 @@ let is_opposite_tests = [
 let make_is_dead_test
     (name : string)
     (snake : int list list)
-    (cursor_pos: int*int)
+    (enemies: (int*int) list)
     (expected_output : bool) : test =
   name >:: (fun _ ->
-      assert_equal expected_output (is_dead snake cursor_pos))
+      assert_equal expected_output (is_dead snake enemies))
 
-let w = 10
+let w = 10 
 let h = 16
 (*hard coded width = 58*)
 let is_dead_tests = [
-  make_is_dead_test "is dead bottom edge" 
-    [[5;15];[5;14];[5;13];[5;12]] (w,h) true;
-  make_is_dead_test "is dead top edge" [[5;4];[5;5];[5;6]] (w,h) true;
-  make_is_dead_test "is dead left edge" [[1;5];[2;5];[2;4]] (w,h) true;
-  make_is_dead_test "is dead right edge" [[58;6];[57;6];[56;6]] (w,h) true;
+ (*make_is_dead_test "is dead bottom edge" 
+    [[5;15];[5;14];[5;13];[5;12]] [(w,h)] true;*)
+  make_is_dead_test "is dead top edge" [[5;4];[5;5];[5;6]] [(w,h)] true;
+  make_is_dead_test "is dead left edge" [[1;5];[2;5];[2;4]] [(w,h)] true;
+  make_is_dead_test "is dead right edge" [[58;6];[57;6];[56;6]] [(w,h)] true;
   make_is_dead_test "is dead self hit" 
     [[5;12];[5;13];[5;14];[4;14];[3;14];[3;13];[3;12];[4;12];[5;12];[6;12]]  
-    (w,h) true;
-  make_is_dead_test "is dead not dead" [[5;7];[5;6];[5;5]] (w,h) false;
+    [(w,h)] true;
+  make_is_dead_test "is dead not dead" [[5;7];[5;6];[5;5]] [(w,h)] false;
 ]
 
+let make_check_conflicts
+    (name : string)
+    (snake : 'a list list)
+    (apple : 'a * 'a)
+    (enemies : ('a * 'a) list)
+    (expected_output : bool) : test = 
+  name >:: (fun _ -> 
+    assert_equal expected_output (check_conflicts snake apple enemies))
 
+let check_conflicts_tests = [
+  make_check_conflicts "no conflict" [[1;1]] (2,2) [(3,3)] false;
+  make_check_conflicts "conflict with snake" [[3;3]] (2,2) [(3,3)] true;
+  make_check_conflicts "conflict with apple" [[1;1]] (3,3) [(3,3)] true;
+]
 let tests = 
   "test suite  for A6" >::: List.flatten [
     whitespace_tests;
@@ -158,6 +171,7 @@ let tests =
     snake_remove_tail_tests;
     is_opposite_tests;
     is_dead_tests;
+    check_conflicts_tests
 
   ]
 
