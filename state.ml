@@ -255,6 +255,20 @@ let update_h_score old_sc new_sc  =
   if new_sc > old_sc then new_sc
   else old_sc
 
+(*all time high score*)
+let update_ath_score curr_sc = 
+  let score_file =  open_in("all_time_high_score.txt") in 
+  let standing_sc = int_of_string (input_line score_file) in 
+  close_in score_file;
+
+  if standing_sc > curr_sc then standing_sc
+  else
+    let outf =  open_out "all_time_high_score.txt" in 
+    Printf.fprintf (outf) "%s\n" (string_of_int curr_sc);
+    close_out outf; 
+    curr_sc
+
+
 (** [game_over] prints a game over box over the last game board and 
     resets terminal*)
 let game_over snake h_score = 
@@ -266,21 +280,28 @@ let game_over snake h_score =
 
   let rec vert xpos ypos h = 
     set_cursor xpos ypos;
-    if h = 1 then (print_endline ("|" ^ (whitespace (box_w)) ^ "|"); 
+    if h = 0 then (print_endline ("|" ^ (whitespace (box_w)) ^ "|"); 
                    print_endline) 
     else (print_endline ("|" ^ (whitespace (box_w)) ^ "|"); 
           vert xpos (ypos+1) (h-1))
   in
   vert (width/2 -box_w/2) (height/2 + (box_h/2 -2)) 5;
 
-  set_cursor (width/2 -box_w/2) (height/2 + (box_h/2 + 3));
+  set_cursor (width/2 -box_w/2) (height/2 + (box_h/2 + 4));
   print_endline (" " ^ draw_horiz_edge box_w);
 
   set_cursor (width/2 -4) (height/2 + (box_h/2 -1 ));
   print_string[red] ("GAME OVER ");
-  set_cursor (width/2 - 10) (height/2 + (box_h/2 + 1));
-  print_string[blue] ("Score: " ^ string_of_int (List.length snake) ^ 
-                      ", High Score: " ^ string_of_int(h_score));
+  set_cursor (width/2 - 4) (height/2 + (box_h/2 + 1));
+
+  let curr_score = List.length snake in 
+  let all_time_high_score = update_ath_score curr_score in 
+
+  print_string[blue] ("Score: " ^ string_of_int curr_score);
+  (* ^ ", Best Score: " ^ string_of_int(h_score));*)
+  (*put this back in if we implement losing segments*)
+  set_cursor (width/2 - 11) (height/2 + (box_h/2 + 2));
+  print_string[blue] ("All Time High Score: " ^ string_of_int all_time_high_score);
   set_cursor (fst pos) ((snd pos)+4);
 
   reset_terminal()
@@ -298,6 +319,10 @@ let play_game () =
      (string_of_int (snd terminal_size))); *)
   make_board width height snake apple [];
 
+
+  (*only update board if input is nothing, and update it with last input. 
+    amd keep track of how long its been since last input - store time of last input
+    and exectute function at time of next tick. -> change c_vtime to be the remainng time*)
   (* receives the user input and moves the snake*)
   (*[grow] is the number of iterations the snake should grow, incremented (by 2) 
     by eating an apple. decreases by one each turn the snake grows.*)
