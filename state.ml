@@ -102,46 +102,89 @@ let rec get_all_enem_pos is_hor pos num acc=
     else get_all_enem_pos is_hor (x, (y+1)) (num-1) acc'
   else acc
 
+let apple_extent apple power = 
+  match power/2 with 
+  | 2 -> [apple]
+  | 3 ->  [apple]
+  | 4 -> [apple; ((fst apple)+ 1, (snd apple))]
+  | 5 -> [apple; ((fst apple)+ 1, (snd apple)); ((fst apple)-1, (snd apple));
+          ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
+  | 6 -> [apple; ((fst apple)+ 1, (snd apple)); ((fst apple)-1, (snd apple));
+          ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
+  | _ -> failwith "problem with apple_extent"
+
 (**[check_conflicts snake apple enemies] checks whether the [snake] head or 
-   [apple] or [power_apple] overlaps with [enemies]. *)
-let check_conflicts snake apple power_apple enemies =
+   [apple] overlaps with [enemies]. *)
+let check_conflicts snake apple apple_power enemies =
   let snake_head = get_snake_head snake in
-  (List.mem snake_head enemies || List.mem apple enemies || 
-  List.mem power_apple enemies)
+  let apple_extent = apple_extent apple apple_power in
+  let rec check_apple apple_ex enemies = 
+    match apple_ex with 
+    | [] -> false
+    | h::t -> List.mem h enemies || check_apple t enemies in 
+
+  (List.mem snake_head enemies || check_apple apple_extent enemies)
+
 
 (**[make_enemies snake apple is_hor enemies] are positions of all enemies. *)
-let rec make_enemies snake apple power_apple is_hor enemies=
+let rec make_enemies snake apple apple_power is_hor enemies=
   let rand = 1+Random.int 5 in
   (* new-produced enemies position *)
   let enem_pos = produce_random_pos() in
   (* all enemies positions *)
   let enemies_pos = get_all_enem_pos is_hor enem_pos rand enemies in
-  if check_conflicts snake apple power_apple enemies_pos 
+  if check_conflicts snake apple apple_power enemies_pos 
   (*cannot make enemies at the same positon as snake head or apple*)
-  then make_enemies snake apple power_apple is_hor enemies
+  then make_enemies snake apple apple_power is_hor enemies
   else enemies_pos
 
 (** [check_power_apple_conflicts snake apple enemies power_apple_pos] checks 
     whether the [snake] head or [apple] or [enemies] overlaps with the
     [power_apple_pos].*)
-let check_power_apple_conflicts snake apple enemies power_apple_pos =
-  let snake_head = get_snake_head snake in 
-  (List.mem power_apple_pos enemies || snake_head = power_apple_pos || 
-  apple = power_apple_pos)
+let check_apple_conflicts snake enemies apple_pos apple_power  =
+  let snake_head = get_snake_head snake in
+  let apple_extent = apple_extent apple_pos apple_power in
+  let rec check_apple apple_ex enemies = 
+    match apple_ex with 
+    | [] -> false
+    | h::t -> List.mem h enemies || check_apple t enemies in 
+
+  (List.mem snake_head apple_extent || check_apple apple_extent enemies)
 
 (** [make_power_apple snake apple enemies] is the position of the power_apple.*)
-let rec make_power_apple snake apple enemies =
-  let power_apple_pos = produce_random_pos()  in
-  if check_power_apple_conflicts snake apple enemies power_apple_pos 
-  then make_power_apple snake apple enemies 
-  else power_apple_pos
+let rec make_apple snake enemies =
+  let pos = produce_random_pos() in
+  let power = 4 + if Random.int 6 == 1 then 9 else 0 in 
+  if check_apple_conflicts snake enemies pos power
+  then make_apple snake enemies 
+  else (pos, power)
 
-(** [draw_power_apple make_power_apple draws the power_apple on the board at 
-    position  [make_power_apple].  *)
-let draw_power_apple make_power_apple =
-  set_cursor (fst(make_power_apple)) (snd(make_power_apple));
-  print_string [magenta]"o"
-  
+(** [draw_apple apple apple_power] draws the apple on the board at position [apple]
+    according to its power level [apple_power]. apple power minimum is 4.  *)
+let draw_apple apple apple_power =
+  (*stage starts at 10*)
+  match apple_power/2 with 
+  | 2 -> set_cursor (fst(apple)) (snd(apple));
+    print_string [red]"o"(*regular apple*)
+  | 3 ->  set_cursor (fst(apple)) (snd(apple));
+    print_string [magenta]"O"
+  | 4 -> set_cursor (fst(apple)) (snd(apple));
+    print_string [magenta]"OO"
+  | 5 -> set_cursor (fst(apple)) (snd(apple)-1);
+    print_string [magenta]"o";
+    set_cursor (fst(apple)-1) (snd(apple));
+    print_string [magenta]"OOO";
+    set_cursor (fst(apple)) (snd(apple) + 1);
+    print_string [magenta]"o"
+  | 6 -> set_cursor (fst(apple)) (snd(apple)-1);
+    print_string [magenta]"O";
+    set_cursor (fst(apple)-1) (snd(apple));
+    print_string [magenta]"OOO";
+    set_cursor (fst(apple)) (snd(apple) + 1);
+    print_string [magenta]"O"
+  | _ -> failwith "problem with stage"
+
+
 (**[draw_verti_edge w h] drows the vertical boundaries with height [h]. 
     The distance between two vertical lines is [w]. *)
 let rec draw_verti_edge w h = 
@@ -164,31 +207,37 @@ let rec draw_enemies = function
 
 (**[make_board w h snake apple] draws the canvas with [snake] and [apple] 
     inside. [w] and [h] are the width and height of the canvas. *)
-let make_board w h snake apple power_apple enemies=
+let make_board w h snake apple apple_power enemies=
 
   print_endline (" " ^ draw_horiz_edge (w));
   draw_verti_edge w h;
   print_endline (" " ^ draw_horiz_edge (w));
   let pos = (1,26) in
   set_cursor (fst apple) (snd apple);
-  print_string[red] (draw_apple);
+  draw_apple apple apple_power; 
   draw_snake snake;
   draw_enemies enemies;
-  draw_power_apple power_apple;
   set_cursor (fst pos) ((snd pos)+1);
   print_string[blue] ("  Score: " ^ string_of_int(List.length snake) ^ 
                       whitespace(w-10));
   set_cursor (fst pos) ((snd pos)+4)
 
 (**[check_eat apple snake] checks whether [snake] can eat the [apple]. *)
-let check_eat apple snake =
+let check_eat apple apple_power snake =
   let head = get_snake_seg snake 0 in
   let head_x = get_seg_xcorr head in
   let head_y = get_seg_ycorr head in
-  let apple_x = fst apple in
-  let apple_y = snd apple in
-  apple_x = head_x &&  apple_y = head_y ||
-  (apple_x = (head_x+1) && apple_y = head_y)
+  let apple_extent = apple_extent apple apple_power in
+  let rec check_apple_extent apple_extent = 
+    match apple_extent with 
+    | [] -> false 
+    | h::t ->
+      let apple_x = fst h in
+      let apple_y = snd h in
+      (apple_x == head_x &&  apple_y == head_y ||
+       (apple_x == (head_x+1) && apple_y == head_y)) || check_apple_extent t in
+
+  check_apple_extent apple_extent
 
 (**[snake_add_head dir snake] adds a new segment to the head of [snake] 
     following the direction [dir]. *)
@@ -226,22 +275,22 @@ let is_dead snake enemies=
 (**[new_state snake apple sl dir will_grow] creates a new state for
     the board every [sl+0.2] seconds. [dir] is the new direction of the snake. 
     If [will_grow], the snake grows by one segment in front.*)
-let new_state snake apple power_apple enemies (sl:float) dir (will_grow:bool)=
+let new_state snake apple apple_power enemies (sl:float) dir (will_grow:bool)=
   (* sleepf(sl); *)
   set_cursor 1 row_top;
   let new_snake = if will_grow then snake |> snake_add_head dir
     else snake |> snake_add_head dir |> snake_remove_tail in
-  let is_eat_apple = check_eat apple new_snake in
-  let is_eat_power_apple = check_eat power_apple new_snake in
-  let new_apple = if is_eat_apple then produce_random_pos() else apple in 
-  let new_power_apple = if is_eat_power_apple then make_power_apple snake apple enemies
-    else power_apple in
-  (new_snake, new_apple, new_power_apple, is_eat_apple)
+  let is_eat_apple = check_eat apple apple_power new_snake in
+  let apple_seed = make_apple new_snake enemies in 
+  let new_apple = if is_eat_apple then fst apple_seed else apple in 
+  let new_power = if is_eat_apple then snd apple_seed else if apple_power > 4 
+    then apple_power - 1 else apple_power in 
+  (new_snake, new_apple, new_power, is_eat_apple)
 
 (**[new_state snake apple sl dir will_grow enemies] draws the board according to 
    new_st*)
-let move snake apple power_apple (sl:float) dir (will_grow:bool) enemies=
-  let (s, a, p, e) = new_state snake apple power_apple enemies sl dir will_grow in
+let move snake apple apple_power (sl:float) dir (will_grow:bool) enemies=
+  let (s, a, p, e) = new_state snake apple apple_power enemies sl dir will_grow in
   let enemies' = if e then make_enemies s a p true enemies else enemies in
   make_board width height s a p enemies';(s,a,p,enemies')
 
@@ -339,10 +388,10 @@ let play_game () =
   (* Random.init 10; *)
   let snake = [[width/2; height/2]] in
   let apple = produce_random_pos () in
-  let power_apple = produce_random_pos () in
+  let apple_power = 4 + if Random.int 6 == 1 then 9 else 0 in 
   (* print_endline ((string_of_int (fst terminal_size)) ^"  "^ 
      (string_of_int (snd terminal_size))); *)
-  make_board width height snake apple power_apple [];
+  make_board width height snake apple apple_power [];
 
 
   (*only update board if input is nothing, and update it with last input. 
@@ -351,34 +400,30 @@ let play_game () =
   (* receives the user input and moves the snake*)
   (*[grow] is the number of iterations the snake should grow, incremented (by 2) 
     by eating an apple. decreases by one each turn the snake grows.*)
-  let rec play n_snake n_apple n_power_apple old_dir (grow:int) enemies h_score= 
+  let rec play n_snake n_apple (apple_power:int) old_dir (grow:int) enemies h_score= 
     let will_grow = grow > 0 in
     (try
        (let input = receive_input snake in
         if is_opposite input old_dir then
           failwith "maintain the old direction" else (* will be catched*)
-          let (new_snake, new_apple, new_power_apple, enemies') = 
-            move n_snake n_apple n_power_apple 0.1 input will_grow enemies in 
-          let new_grow = (if check_eat n_apple new_snake then 2 else
-                          if check_eat n_power_apple new_snake then 5 else 0) + 
+          let (new_snake, new_apple, new_apple_power, enemies') = 
+            move n_snake n_apple apple_power 0.1 input will_grow enemies in 
+          let new_grow = (if check_eat n_apple apple_power new_snake then apple_power/2 else 0) + 
                          (if grow>0 then grow-1 else grow) in
           let new_h_sc = update_h_score h_score (List.length new_snake) in 
           if is_dead new_snake enemies then game_over new_snake new_h_sc
-          else play new_snake new_apple new_power_apple input new_grow enemies' 
-            new_h_sc)
+          else play new_snake new_apple new_apple_power input new_grow enemies' 
+              new_h_sc)
      with
      |exp -> (let input = old_dir in 
-              let (new_snake, new_apple, new_power_apple, enemies') = 
-                move n_snake n_apple n_power_apple 0.1 input will_grow enemies 
-              in 
-              let new_grow = (if check_eat n_apple new_snake then 2 else 
-                              if check_eat n_power_apple new_snake then 5 
-                              else 0) + 
+              let (new_snake, new_apple, new_apple_power, enemies') = 
+                move n_snake n_apple apple_power 0.1 input will_grow enemies in 
+              let new_grow = (if check_eat n_apple apple_power new_snake then apple_power/2 else 0) + 
                              (if grow>0 then grow-1 else grow) in
               let new_h_sc = update_h_score h_score (List.length new_snake) in 
               if is_dead new_snake enemies then game_over new_snake new_h_sc
-              else play new_snake new_apple new_power_apple input new_grow 
-                enemies' new_h_sc))
+              else play new_snake new_apple new_apple_power input new_grow enemies' 
+                  new_h_sc))
   in 
-  play snake apple power_apple Left 0 
-    (make_enemies snake apple power_apple true []) 0
+  play snake apple apple_power Left 0 
+    (make_enemies snake apple 4 true []) 4

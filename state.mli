@@ -28,7 +28,7 @@ val get_seg_ycorr : int list -> int
 val get_seg_xcorr : int list -> int
 
 (**[check_eat apple snake] checks whether [snake] can eat the [apple]. *)
-val check_eat : int * int -> int list list -> bool
+val check_eat : int * int -> int -> int list list -> bool
 
 (** [snake_add_head dir snake] adds a new segment to the head of [snake] 
     following the direction [dir]. *)
@@ -47,4 +47,4 @@ val is_dead : int list list -> (int * int) list-> bool
 
 (** [check_conflicts snake apple enemies] checks whether the [snake] head or 
     [apple] overlaps with [enemies]. *)
-val check_conflicts : 'a list list -> 'a * 'a -> 'a * 'a -> ('a * 'a) list -> bool
+val check_conflicts : int list list -> int * int -> int -> (int * int) list -> bool
