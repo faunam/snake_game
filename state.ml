@@ -116,14 +116,14 @@ let apple_extent apple power =
 (**[check_conflicts snake apple enemies] checks whether the [snake] head or 
    [apple] overlaps with [enemies]. *)
 let check_conflicts snake apple apple_power enemies =
-  let snake_head = get_snake_head snake in
   let apple_extent = apple_extent apple apple_power in
-  let rec check_apple apple_ex enemies = 
-    match apple_ex with 
+  let rec check_enemies enemies= 
+    match enemies with 
     | [] -> false
-    | h::t -> List.mem h enemies || check_apple t enemies in 
+    | h::t -> let snk_h = [fst h; snd h] in 
+      List.mem h apple_extent || List.mem snk_h snake || check_enemies t in 
 
-  (List.mem snake_head enemies || check_apple apple_extent enemies)
+  check_enemies enemies
 
 
 (**[make_enemies snake apple is_hor enemies] are positions of all enemies. *)
@@ -142,14 +142,15 @@ let rec make_enemies snake apple apple_power is_hor enemies=
     whether the [snake] head or [apple] or [enemies] overlaps with the
     [power_apple_pos].*)
 let check_apple_conflicts snake enemies apple_pos apple_power  =
-  let snake_head = get_snake_head snake in
   let apple_extent = apple_extent apple_pos apple_power in
   let rec check_apple apple_ex enemies = 
     match apple_ex with 
     | [] -> false
-    | h::t -> List.mem h enemies || check_apple t enemies in 
+    | h::t -> let 
+      snk_h = [fst h; snd h] in 
+      List.mem h enemies || List.mem snk_h snake || check_apple t enemies in 
 
-  (List.mem snake_head apple_extent || check_apple apple_extent enemies)
+  check_apple apple_extent enemies
 
 (** [make_power_apple snake apple enemies] is the position of the power_apple.*)
 let rec make_apple snake enemies =
