@@ -80,10 +80,6 @@ let rec draw_snake snake =
   |h :: t -> set_cursor (get_seg_xcorr h) (get_seg_ycorr h);
     print_string[green] (snake_seg);draw_snake t
 
-(** The format of the apple. *)
-let draw_apple = 
-  "o" 
-
 (** y cordinate of the top line of the canvas.*)
 let row_top = 4
 
@@ -146,19 +142,24 @@ let check_apple_conflicts snake enemies apple_pos apple_power  =
   let rec check_apple apple_ex enemies = 
     match apple_ex with 
     | [] -> false
-    | h::t -> let 
-      snk_h = [fst h; snd h] in 
-      List.mem h enemies || List.mem snk_h snake || check_apple t enemies in 
+    | h::t -> 
+      let x = fst h in 
+      let y = snd h in 
+      let snk_h = [x; y] in 
+      List.mem h enemies || List.mem snk_h snake || x <= 1 || x >= width || 
+      y <= 4 || y == ter_hei-1 || check_apple t enemies  in 
 
   check_apple apple_extent enemies
 
 (** [make_power_apple snake apple enemies] is the position of the power_apple.*)
-let rec make_apple snake enemies =
-  let pos = produce_random_pos() in
-  let power = 4 + if Random.int 6 == 1 then 9 else 0 in 
-  if check_apple_conflicts snake enemies pos power
-  then make_apple snake enemies 
-  else (pos, power)
+let rec make_apple snake enemies =  
+  let power = 4 + if Random.int 5 == 1 then 9 else 0 in 
+  let rec good_pos power = 
+    let rand_pos = produce_random_pos() in 
+    if check_apple_conflicts snake enemies rand_pos power then good_pos power 
+    else rand_pos in 
+
+  (good_pos power, power)
 
 (** [draw_apple apple apple_power] draws the apple on the board at position [apple]
     according to its power level [apple_power]. apple power minimum is 4.  *)
