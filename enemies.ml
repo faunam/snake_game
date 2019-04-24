@@ -13,7 +13,7 @@ let produce_random_pos ()=
 
 (**[get_all_enem_pos is_hor pos num acc] are all positions of enemies with 
    starting position [pos] and length [num]. if [is_hor] is true, then enemies 
-   are horizontal otherwise vertical. *)
+   are horizontal otherwise vertical. [acc] is initial enemy positions. *)
 let rec get_all_enem_pos is_hor pos num acc=
   if num > 0 then
     let (x,y) = pos in
@@ -33,8 +33,8 @@ let apple_extent apple power =
           ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
   | _ -> failwith "problem with apple_extent"
 
-(**[check_conflicts snake apple enemies] checks whether the [snake] head or 
-   [apple] overlaps with [enemies]. *)
+(**[check_conflicts snake apple apple_power enemies] checks whether the [snake] 
+   head or [apple] with power [apple_power] overlaps with [enemies]. *)
 let check_conflicts snake apple apple_power enemies =
   let apple_extent = apple_extent apple apple_power in
   let rec check_enemies enemies= 
@@ -42,7 +42,6 @@ let check_conflicts snake apple apple_power enemies =
     | [] -> false
     | h::t -> let snk_h = [fst h; snd h] in 
       List.mem h apple_extent || List.mem snk_h snake || check_enemies t in 
-
   check_enemies enemies
 
 let rec make_enemies snake apple apple_power is_hor enemies=

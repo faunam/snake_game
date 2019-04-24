@@ -9,7 +9,8 @@ let reset_terminal () =
     { termio with Unix.c_icanon = true; Unix.c_vmin = 1; Unix.c_vtime=0} in
   Unix.tcsetattr Unix.stdin Unix.TCSADRAIN new_ter
 
-(** [whitespace num] is a string composed of only whitespace with [num]. *)
+(** [whitespace num] is a string composed of only continuous whitespace
+    with length [num]. *)
 let rec whitespace num = 
   if num = 0 then "" else
   if num = 1 then " " 
@@ -28,21 +29,20 @@ let get_seg_xcorr seg =
 let snake_seg =
   "[]"
 
-(** [draw_snake snake] draws [snake].*)
+(** [draw_snake snake] draws [snake] according to the cordinates 
+    contained in it.*)
 let rec draw_snake snake = 
   match snake with
   |[] -> ()
   |h :: t -> set_cursor (get_seg_xcorr h) (get_seg_ycorr h);
     print_string[green] (snake_seg);draw_snake t
 
-(** [make_power_apple snake apple enemies] is the position of the power_apple.*)
 let rec make_apple snake enemies =  
   let power = 4 + if Random.int 5 == 1 then 9 else 0 in 
   let rec good_pos power = 
     let rand_pos = produce_random_pos() in 
     if check_apple_conflicts snake enemies rand_pos power then good_pos power 
     else rand_pos in 
-
   (good_pos power, power)
 
 (**[draw_verti_edge w h] drows the vertical boundaries with height [h]. 
@@ -65,8 +65,10 @@ let rec draw_enemies = function
   | (x, y) :: t -> set_cursor x y;
     print_string[blue] ("*"); draw_enemies t
 
-(** [draw_apple apple apple_power] draws the apple on the board at position [apple]
-    according to its power level [apple_power]. apple power minimum is 4.  *)
+(** [draw_apple apple apple_power] draws the apple on the board at position 
+    [apple] according to its power level [apple_power]. Apple power minimum 
+    is 4. 
+    Raises [Failure] it the apple_power is larger than [13]. *)
 let draw_apple apple apple_power =
   (*stage starts at 10*)
   match apple_power/2 with 
@@ -91,7 +93,6 @@ let draw_apple apple apple_power =
   | _ -> failwith "problem with stage"
 
 let make_board w h snake apple apple_power enemies=
-
   print_endline (" " ^ draw_horiz_edge (w));
   draw_verti_edge w h;
   print_endline (" " ^ draw_horiz_edge (w));
@@ -109,7 +110,10 @@ let update_h_score old_sc new_sc  =
   if new_sc > old_sc then new_sc
   else old_sc
 
-(*all time high score*)
+(** [update_ath_score curr_sc] holds the value of the high score for this 
+    session of the game. It only updates the score stroed in 
+    [all_time_high_score.txt] to [curr_sc] if the the latter 
+    is greater. *)
 let update_ath_score curr_sc = 
   let score_file =  open_in("all_time_high_score.txt") in 
   let standing_sc = int_of_string (input_line score_file) in 
@@ -122,9 +126,6 @@ let update_ath_score curr_sc =
     close_out outf; 
     curr_sc
 
-
-(** [game_over] prints a game over box over the last game board and 
-    resets terminal*)
 let game_over snake h_score = 
   let pos = (ter_wid, ter_hei) in
   let box_w = 30 in 
