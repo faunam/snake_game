@@ -33,6 +33,12 @@ let apple_extent apple power =
           ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
   | 6 -> [apple; ((fst apple)+ 1, (snd apple)); ((fst apple)-1, (snd apple));
           ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
+  | 7 -> [apple; ((fst apple)+ 1, (snd apple)); ((fst apple)-1, (snd apple));
+          ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
+  | 8 ->[apple; ((fst apple)+ 1, (snd apple)); ((fst apple)-1, (snd apple));
+          ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
+  | 9 ->[apple; ((fst apple)+ 1, (snd apple)); ((fst apple)-1, (snd apple));
+          ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
   | _ -> failwith "problem with apple_extent"
 
 let check_conflicts snake apple apple_power enemies =

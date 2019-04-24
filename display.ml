@@ -36,7 +36,7 @@ let rec draw_snake snake =
     print_string[green] (snake_seg);draw_snake t
 
 let rec make_apple snake enemies =  
-  let power = 4 + if Random.int 5 == 1 then 9 else 0 in 
+  let power = 4 + if Random.int 5 == 1 then 15 else 0 in 
   let rec good_pos power = 
     let rand_pos = produce_random_pos() in 
     if check_apple_conflicts snake enemies rand_pos power then good_pos power 
@@ -66,7 +66,7 @@ let rec draw_enemies = function
 (** [draw_apple apple apple_power] draws the apple on the board at position 
     [apple] according to its power level [apple_power]. Apple power minimum 
     is 4. 
-    Raises [Failure] it the apple_power is larger than [13]. *)
+    Raises [Failure] it the apple_power is larger than [20]. *)
 let draw_apple apple apple_power =
   (*stage starts at 10*)
   match apple_power/2 with 
@@ -88,6 +88,24 @@ let draw_apple apple apple_power =
     print_string [magenta]"OOO";
     set_cursor (fst(apple)) (snd(apple) + 1);
     print_string [magenta]"O"
+  | 7 -> set_cursor (fst(apple)) (snd(apple)-1);
+    print_string [magenta]"O";
+    set_cursor (fst(apple)-1) (snd(apple));
+    print_string [magenta]"OOO";
+    set_cursor (fst(apple)) (snd(apple) + 1);
+    print_string [magenta]"O";
+  | 8 -> set_cursor (fst(apple)) (snd(apple)-1);
+    print_string [magenta]"O";
+    set_cursor (fst(apple)-1) (snd(apple));
+    print_string [magenta]"OOO";
+    set_cursor (fst(apple)) (snd(apple) + 1);
+    print_string [magenta]"O";
+  | 9 -> set_cursor (fst(apple)) (snd(apple)-1);
+    print_string [magenta]"O";
+    set_cursor (fst(apple)-1) (snd(apple));
+    print_string [magenta]"OOO";
+    set_cursor (fst(apple)) (snd(apple) + 1);
+    print_string [magenta]"O";
   | _ -> failwith "problem with stage"
 
 let make_board w h snake apple apple_power enemies=
