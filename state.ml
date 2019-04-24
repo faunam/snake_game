@@ -1,3 +1,5 @@
+open Display
+open Enemies
 (**[getachar sl] gets one char (no matter what it is) from the imput and then 
     returns. *)
 let getachar sl =
@@ -9,28 +11,8 @@ let getachar sl =
   Unix.tcsetattr Unix.stdin Unix.TCSADRAIN termio;
   res
 
-(**[reset_terminal ()] resets the terminal to the state before the game begins.
-*)
-let reset_terminal () = 
-  let termio = Unix.tcgetattr Unix.stdin in
-  let new_ter =
-    { termio with Unix.c_icanon = true; Unix.c_vmin = 1; Unix.c_vtime=0} in
-  Unix.tcsetattr Unix.stdin Unix.TCSADRAIN new_ter
-
 open ANSITerminal
 open Unix
-
-(** Width of the canvas. *)
-let width = 58
-
-(** Height of the canvas. *)
-let height = 20
-
-(** Height of the terminal. *)
-let ter_hei = height + 6
-
-(** Width of the terminal. *)
-let ter_wid = width + 2
 
 (** Snake movement direction*)
 type direction =
@@ -39,190 +21,10 @@ type direction =
   |Left
   |Right
 
-(** [whitespace num] is a string composed of only whitespace with [num]. *)
-let rec whitespace num = 
-  if num = 0 then "" else
-  if num = 1 then " " 
-  else " " ^ whitespace (num-1)
-
-(**[get_snake_seg snake i] gets the [i]th segment of [snake]. *)
-let get_snake_seg snake i=
-  List.nth snake i
-
-(**[get_seg_ycorr seg] gets the y corrdinate of the snake segment [seg]. *)
-let get_seg_ycorr seg =
-  List.nth seg 1
-
-(**[get_seg_xcorr seg] gets the leftmost x corrdinate of the snake segment 
-    [seg]. *)
-let get_seg_xcorr seg =
-  List.nth seg 0
-
-(** The format of each snake segment. *)
-let snake_seg =
-  "[]"
 (**[get_snake_head snake] gets the snake head in tuple format. *)
 let get_snake_head snake =
   let head = List.hd snake in
   (List.hd head, List.nth head 1)
-
-(** [draw_snake snake] draws [snake].*)
-let rec draw_snake snake = 
-  match snake with
-  |[] -> ()
-  |h :: t -> set_cursor (get_seg_xcorr h) (get_seg_ycorr h);
-    print_string[green] (snake_seg);draw_snake t
-
-(** [draw_snake snake] draws [snake].*)
-let rec draw_snake snake = 
-  match snake with
-  |[] -> ()
-  |h :: t -> set_cursor (get_seg_xcorr h) (get_seg_ycorr h);
-    print_string[green] (snake_seg);draw_snake t
-
-(** y cordinate of the top line of the canvas.*)
-let row_top = 4
-
-(** [produce_random_pos] produces a random position inside the canvas. *)
-let produce_random_pos ()=
-  ((3 + Random.int (width-3)), (5 + Random.int (height-5)))
-
-(**[get_all_enem_pos is_hor pos num acc] are all positions of enemies with 
-   starting position [pos] and length [num]. if [is_hor] is true, then enemies 
-   are horizontal otherwise vertical. *)
-let rec get_all_enem_pos is_hor pos num acc=
-  if num > 0 then
-    let (x,y) = pos in
-    let acc' = (x,y)::acc in
-    if is_hor then get_all_enem_pos is_hor ((x+1),y) (num-1) acc'
-    else get_all_enem_pos is_hor (x, (y+1)) (num-1) acc'
-  else acc
-
-let apple_extent apple power = 
-  match power/2 with 
-  | 2 -> [apple]
-  | 3 ->  [apple]
-  | 4 -> [apple; ((fst apple)+ 1, (snd apple))]
-  | 5 -> [apple; ((fst apple)+ 1, (snd apple)); ((fst apple)-1, (snd apple));
-          ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
-  | 6 -> [apple; ((fst apple)+ 1, (snd apple)); ((fst apple)-1, (snd apple));
-          ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
-  | _ -> failwith "problem with apple_extent"
-
-(**[check_conflicts snake apple enemies] checks whether the [snake] head or 
-   [apple] overlaps with [enemies]. *)
-let check_conflicts snake apple apple_power enemies =
-  let apple_extent = apple_extent apple apple_power in
-  let rec check_enemies enemies= 
-    match enemies with 
-    | [] -> false
-    | h::t -> let snk_h = [fst h; snd h] in 
-      List.mem h apple_extent || List.mem snk_h snake || check_enemies t in 
-
-  check_enemies enemies
-
-
-(**[make_enemies snake apple is_hor enemies] are positions of all enemies. *)
-let rec make_enemies snake apple apple_power is_hor enemies=
-  let rand = 1+Random.int 5 in
-  (* new-produced enemies position *)
-  let enem_pos = produce_random_pos() in
-  (* all enemies positions *)
-  let enemies_pos = get_all_enem_pos is_hor enem_pos rand enemies in
-  if check_conflicts snake apple apple_power enemies_pos 
-  (*cannot make enemies at the same positon as snake head or apple*)
-  then make_enemies snake apple apple_power is_hor enemies
-  else enemies_pos
-
-(** [check_power_apple_conflicts snake apple enemies power_apple_pos] checks 
-    whether the [snake] head or [apple] or [enemies] overlaps with the
-    [power_apple_pos].*)
-let check_apple_conflicts snake enemies apple_pos apple_power  =
-  let apple_extent = apple_extent apple_pos apple_power in
-  let rec check_apple apple_ex enemies = 
-    match apple_ex with 
-    | [] -> false
-    | h::t -> 
-      let x = fst h in 
-      let y = snd h in 
-      let snk_h = [x; y] in 
-      List.mem h enemies || List.mem snk_h snake || x <= 1 || x >= width || 
-      y <= 4 || y == ter_hei-1 || check_apple t enemies  in 
-
-  check_apple apple_extent enemies
-
-(** [make_power_apple snake apple enemies] is the position of the power_apple.*)
-let rec make_apple snake enemies =  
-  let power = 4 + if Random.int 5 == 1 then 9 else 0 in 
-  let rec good_pos power = 
-    let rand_pos = produce_random_pos() in 
-    if check_apple_conflicts snake enemies rand_pos power then good_pos power 
-    else rand_pos in 
-
-  (good_pos power, power)
-
-(** [draw_apple apple apple_power] draws the apple on the board at position [apple]
-    according to its power level [apple_power]. apple power minimum is 4.  *)
-let draw_apple apple apple_power =
-  (*stage starts at 10*)
-  match apple_power/2 with 
-  | 2 -> set_cursor (fst(apple)) (snd(apple));
-    print_string [red]"o"(*regular apple*)
-  | 3 ->  set_cursor (fst(apple)) (snd(apple));
-    print_string [magenta]"O"
-  | 4 -> set_cursor (fst(apple)) (snd(apple));
-    print_string [magenta]"OO"
-  | 5 -> set_cursor (fst(apple)) (snd(apple)-1);
-    print_string [magenta]"o";
-    set_cursor (fst(apple)-1) (snd(apple));
-    print_string [magenta]"OOO";
-    set_cursor (fst(apple)) (snd(apple) + 1);
-    print_string [magenta]"o"
-  | 6 -> set_cursor (fst(apple)) (snd(apple)-1);
-    print_string [magenta]"O";
-    set_cursor (fst(apple)-1) (snd(apple));
-    print_string [magenta]"OOO";
-    set_cursor (fst(apple)) (snd(apple) + 1);
-    print_string [magenta]"O"
-  | _ -> failwith "problem with stage"
-
-
-(**[draw_verti_edge w h] drows the vertical boundaries with height [h]. 
-    The distance between two vertical lines is [w]. *)
-let rec draw_verti_edge w h = 
-  let row = "|" ^ (whitespace (w)) ^ "|"
-  in
-  if h = 1 then (print_endline row; print_endline) 
-  else (print_endline row; draw_verti_edge w (h-1))
-
-(**[draw_horiz_edge w] draws the horizontal bondrary of the board with 
-   length [w]. *)
-let rec draw_horiz_edge w  = 
-  if w = 1 then "-" 
-  else "-" ^ draw_horiz_edge (w-1)
-
-(**[draw_enemies enemies] draws the [enemies] on the board. *)
-let rec draw_enemies = function
-  | [] -> ()
-  | (x, y) :: t -> set_cursor x y;
-    print_string[blue] ("*"); draw_enemies t
-
-(**[make_board w h snake apple] draws the canvas with [snake] and [apple] 
-    inside. [w] and [h] are the width and height of the canvas. *)
-let make_board w h snake apple apple_power enemies=
-
-  print_endline (" " ^ draw_horiz_edge (w));
-  draw_verti_edge w h;
-  print_endline (" " ^ draw_horiz_edge (w));
-  let pos = (1,26) in
-  set_cursor (fst apple) (snd apple);
-  draw_apple apple apple_power; 
-  draw_snake snake;
-  draw_enemies enemies;
-  set_cursor (fst pos) ((snd pos)+1);
-  print_string[blue] ("  Score: " ^ string_of_int(List.length snake) ^ 
-                      whitespace(w-10));
-  set_cursor (fst pos) ((snd pos)+4)
 
 (**[check_eat apple snake] checks whether [snake] can eat the [apple]. *)
 let check_eat apple apple_power snake =
@@ -259,10 +61,6 @@ let snake_add_head (dir:direction) snake =
 let snake_remove_tail snake = 
   if List.length snake = 0 then snake else
     snake |> List.rev |> List.tl |> List.rev
-
-(**[produce_random_pos] produces a random position inside the canvas. *)
-let produce_random_pos ()=
-  ((3 + Random.int (width-3)), (5 + Random.int (height-5)))
 
 (**[is_dead snake enemies] checks whether [snake] hits walls or itself or
     [enemies]. *)
@@ -323,64 +121,6 @@ let is_opposite new_dir old_dir =
   |Left -> old_dir = Right
   |Right -> old_dir = Left
 
-(*only have local high score if theres a way to lose points but keep playing*)
-(**[update_h_score] holds the value of the high score for this session of the game. 
-   It updates that value if the current score is greater.*)
-let update_h_score old_sc new_sc  = 
-  if new_sc > old_sc then new_sc
-  else old_sc
-
-(*all time high score*)
-let update_ath_score curr_sc = 
-  let score_file =  open_in("all_time_high_score.txt") in 
-  let standing_sc = int_of_string (input_line score_file) in 
-  close_in score_file;
-
-  if standing_sc > curr_sc then standing_sc
-  else
-    let outf =  open_out "all_time_high_score.txt" in 
-    Printf.fprintf (outf) "%s\n" (string_of_int curr_sc);
-    close_out outf; 
-    curr_sc
-
-
-(** [game_over] prints a game over box over the last game board and 
-    resets terminal*)
-let game_over snake h_score = 
-  let pos = (ter_wid, ter_hei) in
-  let box_w = 30 in 
-  let box_h = 5 in 
-  set_cursor (width/2 - box_w/2) (height/2 + (box_h/2 -3));
-  print_endline (" " ^ draw_horiz_edge box_w);
-
-  let rec vert xpos ypos h = 
-    set_cursor xpos ypos;
-    if h = 0 then (print_endline ("|" ^ (whitespace (box_w)) ^ "|"); 
-                   print_endline) 
-    else (print_endline ("|" ^ (whitespace (box_w)) ^ "|"); 
-          vert xpos (ypos+1) (h-1))
-  in
-  vert (width/2 -box_w/2) (height/2 + (box_h/2 -2)) 5;
-
-  set_cursor (width/2 -box_w/2) (height/2 + (box_h/2 + 4));
-  print_endline (" " ^ draw_horiz_edge box_w);
-
-  set_cursor (width/2 -4) (height/2 + (box_h/2 -1 ));
-  print_string[red] ("GAME OVER ");
-  set_cursor (width/2 - 4) (height/2 + (box_h/2 + 1));
-
-  let curr_score = List.length snake in 
-  let all_time_high_score = update_ath_score curr_score in 
-
-  print_string[blue] ("Score: " ^ string_of_int curr_score);
-  (* ^ ", Best Score: " ^ string_of_int(h_score));*)
-  (*put this back in if we implement losing segments*)
-  set_cursor (width/2 - 11) (height/2 + (box_h/2 + 2));
-  print_string[blue] ("All Time High Score: " ^ string_of_int all_time_high_score);
-  set_cursor (fst pos) ((snd pos)+4);
-
-  reset_terminal()
-
 (** so check eat will check if snake is on apple i guess, and then eat will 
     create a new apple, move snake onto tile where apple was, and add 2 to grow. 
 *)
@@ -405,7 +145,7 @@ let play_game () =
   let rec play n_snake n_apple (apple_power:int) old_dir (grow:int) enemies h_score= 
     let will_grow = grow > 0 in
     (try
-       (let input = receive_input snake in
+       (let input = receive_input n_snake in
         if is_opposite input old_dir then
           failwith "maintain the old direction" else (* will be catched*)
           let (new_snake, new_apple, new_apple_power, enemies') = 

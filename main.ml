@@ -14,7 +14,7 @@ let ter_hei = height + 6
 let ter_wid = width + 2
 
 let main () = 
-  State.reset_terminal();
+  Display.reset_terminal();
   resize ter_wid ter_hei;
   ANSITerminal.(print_string[red] "\n\ Welcome to Snake! Use WASD to change 
     direction. Press enter to start \n");
