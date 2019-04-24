@@ -35,8 +35,6 @@ let apple_extent apple power =
           ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
   | _ -> failwith "problem with apple_extent"
 
-(**[check_conflicts snake apple apple_power enemies] checks whether the [snake] 
-   head or [apple] with power [apple_power] overlaps with [enemies]. *)
 let check_conflicts snake apple apple_power enemies =
   let apple_extent = apple_extent apple apple_power in
   let rec check_enemies enemies= 

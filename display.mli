@@ -2,6 +2,10 @@
     game begins. *)
 val reset_terminal : unit -> unit
 
+(** [whitespace num] is a string composed of only continuous whitespace
+    with length [num]. *)
+val whitespace : int -> string
+
 (** [get_snake_seg snake i] gets the [i]th segment of [snake]. *)
 val get_snake_seg : int list list -> int -> int list
 

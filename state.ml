@@ -23,14 +23,10 @@ type direction =
   |Left
   |Right
 
-(** [get_snake_head snake] is the snake head in pair format. *)
 let get_snake_head snake =
   let head = List.hd snake in
   (List.hd head, List.nth head 1)
 
-(** [check_eat apple apple_power snake] checks whether [snake] can eat the 
-    [apple] with power [apple_power]. If the [snake] head touches any componet
-    of the power apple then the apple can be eaten. *)
 let check_eat apple apple_power snake =
   let head = get_snake_seg snake 0 in
   let head_x = get_seg_xcorr head in
@@ -47,9 +43,6 @@ let check_eat apple apple_power snake =
 
   check_apple_extent apple_extent
 
-(** [snake_add_head dir snake] adds a new segment to the head of [snake] 
-    following the direction [dir]. 
-    Raises [Failure] if the snake segment is not a two-element list. *)
 let snake_add_head (dir:direction) snake =
   match snake with
   |[] -> []
@@ -62,14 +55,10 @@ let snake_add_head (dir:direction) snake =
     end
   |_ -> failwith "impossible" (** shouldn't be executed*)
 
-(** [snake_remove_tail snake] removes the last segment of [snake]. *)
 let snake_remove_tail snake = 
   if List.length snake = 0 then snake else
     snake |> List.rev |> List.tl |> List.rev
 
-(** [is_dead snake enemies] checks whether [snake] hits walls or itself or
-    [enemies]. 
-    Raises [Failure] if the snake segment is not a two-element list.*)
 let is_dead snake enemies= 
   match snake with
   | [] -> false
@@ -103,8 +92,6 @@ let move snake apple apple_power dir (will_grow:bool) enemies=
   let enemies' = if e then make_enemies s a p true enemies else enemies in
   make_board width height s a p enemies';(s,a,p,enemies')
 
-(** [time_delay snake] is the speed depending on the length of [snake]. Large
-    value means small speed. *)
 let time_delay snake =
   let len = List.length snake in
   if len <= 10 then 5
@@ -124,8 +111,6 @@ let rec receive_input snake=
   |'w' -> Up | 's' -> Down | 'a' -> Left | 'd' -> Right
   | _ -> receive_input snake;;
 
-(** [is_opposite new_dir old_dir] checks whether the new direction is the 
-    opposite of the old one. For example, [Up] is the opposite of [Down]. *)
 let is_opposite new_dir old_dir = 
   match new_dir with
   |Up -> old_dir = Down

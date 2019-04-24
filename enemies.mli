@@ -29,6 +29,11 @@ val check_apple_conflicts : int list list -> (int * int) list -> int * int ->
     Raises [Failure] if [power] is greater than 13. *)
 val apple_extent : int * int -> int -> (int * int) list
 
+(**[check_conflicts snake apple apple_power enemies] checks whether the [snake] 
+   head or [apple] with power [apple_power] overlaps with [enemies]. *)
+val check_conflicts : int list list -> int * int -> int -> (int * int) list -> 
+    bool
+
 (**[make_enemies snake apple apple_power is_hor enemies] are positions of all 
    enemies, which include both already-existed and new produced one. The new 
    produced enemies' orientation depends on [is_hor] and their length is 

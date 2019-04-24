@@ -9,8 +9,6 @@ let reset_terminal () =
     { termio with Unix.c_icanon = true; Unix.c_vmin = 1; Unix.c_vtime=0} in
   Unix.tcsetattr Unix.stdin Unix.TCSADRAIN new_ter
 
-(** [whitespace num] is a string composed of only continuous whitespace
-    with length [num]. *)
 let rec whitespace num = 
   if num = 0 then "" else
   if num = 1 then " " 
