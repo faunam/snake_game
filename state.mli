@@ -24,6 +24,12 @@ val snake_remove_tail : int list list -> int list list
     by [cursor_pos]  or itself. *)
 val is_dead : int list list -> (int * int) list-> bool
 
+(** [new_state snake apple apple_power enemies sl dir will_grow] creates a new
+    state for the board every [sl+0.2] seconds. [dir] is the new direction of 
+    the snake. If [will_grow], the snake grows by one segment in front. *)
+val new_state : int list list -> int * int -> int -> (int * int) list -> float
+     -> direction -> bool -> (int list list * (int * int) * int * bool)
+
 (** [is_opposite new_dir old_dir] checks whether the new direction is the 
      opposite of the old one.*)
 val is_opposite : direction -> direction -> bool

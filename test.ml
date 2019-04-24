@@ -60,6 +60,24 @@ let make_is_dead_test
   name >:: (fun _ ->
       assert_equal expected_output (is_dead snake enemies))
 
+(** [make_new_state_test name snake apple apple_power enemies sl dir will_grow]
+    constructs an OUnit test named [name] that asserts the equality of 
+    [expected_output] with [new_state snake apple apple_power enemies sl dir 
+    will_grow]. *)
+let make_new_state_test 
+    (name : string)
+    (snake : int list list)
+    (apple : int * int)
+    (apple_power : int)
+    (enemies : (int * int) list)
+    (sl : float)
+    (dir : direction)
+    (will_grow : bool)
+    (expected_output : (int list list * (int * int) * int * bool)) : test =
+  name >:: (fun _ ->
+      assert_equal expected_output 
+        (new_state snake apple apple_power enemies sl dir will_grow))
+
 (** [make_is_opposite_test name new_dir old_dir expected_output] constructs an 
     OUnit test named [name] that asserts the equality of [expected_output] with
     [is_opposite new_dir old_dir]. *)
@@ -226,7 +244,7 @@ let enemies_tests = [
   make_check_conflicts "conflict with apple" [[1;1]] (3,3)4  [(3,3)] true;
 
   (** tests for [check_apple_conflicts snake enemies apple_pos apple_power]. *)
-  
+
 ]
 
 let tests = 
