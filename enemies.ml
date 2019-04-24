@@ -22,6 +22,8 @@ let rec get_all_enem_pos is_hor pos num acc=
     else get_all_enem_pos is_hor (x, (y+1)) (num-1) acc'
   else acc
 
+(** apple_extend apple power] produces the [apple] based on its [power]. The 
+  bigger the int [power], the bigger the apple. *)
 let apple_extent apple power = 
   match power/2 with 
   | 2 -> [apple]
