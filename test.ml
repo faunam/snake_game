@@ -49,11 +49,11 @@ let state_tests = [
 (** tests for [get_snake_head snake]. *)
 
 (** tests for [check_eat apple apple_power snake]. *)
-  make_check_eat_test "check_eat true" (1,1) 1 [[1;1];[2;2]] true;
-  make_check_eat_test "check_eat false" (3,3) 1 [[1;1];[2;2]] false;
-  make_check_eat_test "check_eat false" (2,2) 1 [[1;1];[2;2]] false;
-  make_check_eat_test "check_eat true" (1,1) 1 [[1;1]] true;
-  make_check_eat_test "check_eat false" (1,2) 1 [[1;3]; [1;4]] false;
+  make_check_eat_test "check_eat true" (1,1) 4 [[1;1];[2;2]] true;
+  make_check_eat_test "check_eat false" (3,3) 4 [[1;1];[2;2]] false;
+  make_check_eat_test "check_eat false" (2,2) 4 [[1;1];[2;2]] false;
+  make_check_eat_test "check_eat true" (1,1) 4 [[1;1]] true;
+  make_check_eat_test "check_eat false" (1,2) 4 [[1;3]; [1;4]] false;
 (** tests for [snake_add_head dir snake]. *)
   make_snake_add_head_test "snake_add_head up" Up [[2;2]] [[2;1];[2;2]];
   make_snake_add_head_test "snake_add_head down" Down [[2;2]] [[2;3];[2;2]];
@@ -165,7 +165,7 @@ let enemies_tests = [
 ]
 
 let tests = 
-  "test suite  for A6" >::: List.flatten [
+  "test suite  for A7" >::: List.flatten [
     state_tests;
     display_tests;
     enemies_tests
