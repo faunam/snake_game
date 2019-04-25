@@ -23,7 +23,7 @@ let rec get_all_enem_pos is_hor pos num acc=
   else acc
 
 (** apple_extend apple power] produces the [apple] based on its [power]. The 
-  bigger the int [power], the bigger the apple. *)
+    bigger the int [power], the bigger the apple. *)
 let apple_extent apple power = 
   match power/2 with 
   | 2 -> [apple]
@@ -36,9 +36,9 @@ let apple_extent apple power =
   | 7 -> [apple; ((fst apple)+ 1, (snd apple)); ((fst apple)-1, (snd apple));
           ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
   | 8 ->[apple; ((fst apple)+ 1, (snd apple)); ((fst apple)-1, (snd apple));
-          ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
+         ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
   | 9 ->[apple; ((fst apple)+ 1, (snd apple)); ((fst apple)-1, (snd apple));
-          ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
+         ((fst apple), (snd apple) - 1); ((fst apple), (snd apple) + 1) ]
   | _ -> failwith "problem with apple_extent"
 
 let check_conflicts snake apple apple_power enemies =
@@ -56,8 +56,9 @@ let rec make_enemies snake apple apple_power is_hor enemies=
   let enem_pos = produce_random_pos() in
   (* all enemies positions *)
   let enemies_pos = get_all_enem_pos is_hor enem_pos rand enemies in
-  if check_conflicts snake apple apple_power enemies_pos 
-  (*cannot make enemies at the same positon as snake head or apple*)
+  if check_conflicts snake apple apple_power enemies_pos ||
+     (fst enem_pos) + rand > width
+     (*cannot make enemies at the same positon as snake head or apple*)
   then make_enemies snake apple apple_power is_hor enemies
   else enemies_pos
 
