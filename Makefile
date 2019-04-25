@@ -26,7 +26,7 @@ finalcheck: check
 	bash finalcheck.sh
 
 zip:
-	zip snake.zip *.ml* _tags Makefile
+	zip snake.zip all_time_high_score.txt *.ml* _tags Makefile
 
 docs: docs-public docs-private
 
