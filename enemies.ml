@@ -22,8 +22,6 @@ let rec get_all_enem_pos is_hor pos num acc=
     else get_all_enem_pos is_hor (x, (y+1)) (num-1) acc'
   else acc
 
-(** apple_extend apple power] produces the [apple] based on its [power]. The 
-    bigger the int [power], the bigger the apple. *)
 let apple_extent apple power = 
   match power/2 with 
   | 2 -> [apple]
@@ -52,7 +50,7 @@ let check_conflicts snake apple apple_power enemies =
       let snk_h = [fst h; snd h] in 
       List.mem h apple_extent || List.mem snk_h snake || x <= 1 || x >= width ||
       y <= 4 || y == ter_hei-1 || check_enemies t in 
-      check_enemies enemies
+  check_enemies enemies
 
 let rec make_enemies snake apple apple_power is_hor enemies=
   let rand = 1+Random.int 5 in
@@ -79,4 +77,4 @@ let check_apple_conflicts snake enemies apple_pos apple_power  =
       || List.mem (x, y+1) enemies || List.mem (x, y-1) enemies || 
       List.mem snk_h snake || x <= 1 || x >= width ||  y <= 4 || y == ter_hei-1
       || check_apple t enemies  in 
-      check_apple apple_extent enemies
+  check_apple apple_extent enemies

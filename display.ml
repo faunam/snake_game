@@ -122,6 +122,8 @@ let make_board w h snake apple apple_power enemies=
                       whitespace(w-10));
   set_cursor (fst pos) ((snd pos)+4)
 
+(** [update_h_score old_sc new_sc] is the higher score between [old_sc] and
+    [new_sc]. *)
 let update_h_score old_sc new_sc  = 
   if new_sc > old_sc then new_sc
   else old_sc
