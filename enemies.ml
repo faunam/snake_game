@@ -46,9 +46,13 @@ let check_conflicts snake apple apple_power enemies =
   let rec check_enemies enemies= 
     match enemies with 
     | [] -> false
-    | h::t -> let snk_h = [fst h; snd h] in 
-      List.mem h apple_extent || List.mem snk_h snake || check_enemies t in 
-  check_enemies enemies
+    | h::t -> 
+      let x = fst h in
+      let y = snd h in
+      let snk_h = [fst h; snd h] in 
+      List.mem h apple_extent || List.mem snk_h snake || x <= 1 || x >= width ||
+      y <= 4 || y == ter_hei-1 || check_enemies t in 
+      check_enemies enemies
 
 let rec make_enemies snake apple apple_power is_hor enemies=
   let rand = 1+Random.int 5 in
@@ -70,7 +74,8 @@ let check_apple_conflicts snake enemies apple_pos apple_power  =
       let x = fst h in 
       let y = snd h in 
       let snk_h = [x; y] in 
-      List.mem h enemies || List.mem snk_h snake || x <= 1 || x >= width || 
-      y <= 4 || y == ter_hei-1 || check_apple t enemies  in 
-
+      List.mem h enemies || List.mem (x+1,y) enemies || List.mem (x-1,y) enemies 
+      || List.mem (x, y+1) enemies || List.mem (x, y-1) enemies || 
+      List.mem snk_h snake || x <= 1 || x >= width ||  y <= 4 || y == ter_hei-1
+      || check_apple t enemies  in 
   check_apple apple_extent enemies
