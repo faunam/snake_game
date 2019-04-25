@@ -14,7 +14,7 @@ let make_get_snake_head_test
     (snake : 'a list list)
     (expected_output : 'a * 'a) : test =
   name >:: (fun _ ->
-    assert_equal expected_output (get_snake_head snake))
+      assert_equal expected_output (get_snake_head snake))
 
 (** [make_check_eat_test name apple apple_power snake expected_output] 
     constructs an OUnit test named [name] that asserts the equality of 
@@ -69,7 +69,7 @@ let make_time_delay_test
     (expected_output: int) : test =
   name >:: (fun _ ->
       assert_equal expected_output (time_delay snake))
-      
+
 (** [make_is_opposite_test name new_dir old_dir expected_output] constructs an 
     OUnit test named [name] that asserts the equality of [expected_output] with
     [is_opposite new_dir old_dir]. *)
@@ -84,68 +84,68 @@ let make_is_opposite_test
 (** [state_tests] is a list of OUnit tests for the functions in state.ml using
     the above functions. *)
 let state_tests = [
-    (** tests for [get_snake_head snake]. *)
-    make_get_snake_head_test "snake size 1" [[1;1]] (1,1);
-    make_get_snake_head_test "snake size 2" [[1;1];[2;1]] (1,1);
-    make_get_snake_head_test "snake size 3" [[3;3];[3;4];[3;5]] (3,3);
+  (** tests for [get_snake_head snake]. *)
+  make_get_snake_head_test "snake size 1" [[1;1]] (1,1);
+  make_get_snake_head_test "snake size 2" [[1;1];[2;1]] (1,1);
+  make_get_snake_head_test "snake size 3" [[3;3];[3;4];[3;5]] (3,3);
 
-    (** tests for [check_eat apple apple_power snake]. *)
-    make_check_eat_test "check_eat true" (1,1) 4 [[1;1];[2;2]] true;
-    make_check_eat_test "check_eat false" (3,3) 4 [[1;1];[2;2]] false;
-    make_check_eat_test "check_eat false" (2,2) 4 [[1;1];[2;2]] false;
-    make_check_eat_test "check_eat true" (1,1) 4 [[1;1]] true;
-    make_check_eat_test "check_eat false" (1,2) 4 [[1;3]; [1;4]] false;
+  (** tests for [check_eat apple apple_power snake]. *)
+  make_check_eat_test "check_eat true" (1,1) 4 [[1;1];[2;2]] true;
+  make_check_eat_test "check_eat false" (3,3) 4 [[1;1];[2;2]] false;
+  make_check_eat_test "check_eat false" (2,2) 4 [[1;1];[2;2]] false;
+  make_check_eat_test "check_eat true" (1,1) 4 [[1;1]] true;
+  make_check_eat_test "check_eat false" (1,2) 4 [[1;3]; [1;4]] false;
 
-    (** tests for [snake_add_head dir snake]. *)
-    make_snake_add_head_test "snake_add_head up" Up [[2;2]] [[2;1];[2;2]];
-    make_snake_add_head_test "snake_add_head down" Down [[2;2]] [[2;3];[2;2]];
-    make_snake_add_head_test "snake_add_head left" Left [[3;3]] [[1;3];[3;3]];
-    make_snake_add_head_test "snake_add_head right" Right [[3;3]] [[5;3];[3;3]];
+  (** tests for [snake_add_head dir snake]. *)
+  make_snake_add_head_test "snake_add_head up" Up [[2;2]] [[2;1];[2;2]];
+  make_snake_add_head_test "snake_add_head down" Down [[2;2]] [[2;3];[2;2]];
+  make_snake_add_head_test "snake_add_head left" Left [[3;3]] [[1;3];[3;3]];
+  make_snake_add_head_test "snake_add_head right" Right [[3;3]] [[5;3];[3;3]];
 
-    (** tests for [snake_remove_tail snake]. *)
-    make_snake_remove_tail_test "snake_remove_tail 0"[] [];
-    make_snake_remove_tail_test "snake_remove_tail 1" [[1;1]] [];
-    make_snake_remove_tail_test "snake_remove_tail 2" [[1;1];[2;2]] [[1;1]];
-    make_snake_remove_tail_test "snake_remove_tail 5" 
-        [[1;1];[2;2];[3;3];[4;4];[5;5]] [[1;1];[2;2];[3;3];[4;4]];
+  (** tests for [snake_remove_tail snake]. *)
+  make_snake_remove_tail_test "snake_remove_tail 0"[] [];
+  make_snake_remove_tail_test "snake_remove_tail 1" [[1;1]] [];
+  make_snake_remove_tail_test "snake_remove_tail 2" [[1;1];[2;2]] [[1;1]];
+  make_snake_remove_tail_test "snake_remove_tail 5" 
+    [[1;1];[2;2];[3;3];[4;4];[5;5]] [[1;1];[2;2];[3;3];[4;4]];
 
-    (** tests for [is_dead snake enemies]. *)
-    make_is_dead_test "is dead top edge" [[5;4];[5;5];[5;6]] [(10,16)] true;
-    make_is_dead_test "is dead left edge" [[1;5];[2;5];[2;4]] [(10,16)] true;
-    make_is_dead_test "is dead right edge" [[58;6];[57;6];[56;6]] [(10,16)] true;
-    make_is_dead_test "is dead self hit" 
-        [[5;12];[5;13];[5;14];[4;14];[3;14];[3;13];[3;12];[4;12];[5;12];[6;12]]  
-        [(10,16)] true;
-    make_is_dead_test "is dead not dead" [[5;7];[5;6];[5;5]] [(10,16)] false;
-    make_is_dead_test "is dead bottom edge" [[5;25]] [(10,16)] true;
-    make_is_dead_test "is dead hit enemy" [[10;16]] [(10,16)] true;
+  (** tests for [is_dead snake enemies]. *)
+  make_is_dead_test "is dead top edge" [[5;4];[5;5];[5;6]] [(10,16)] true;
+  make_is_dead_test "is dead left edge" [[1;5];[2;5];[2;4]] [(10,16)] true;
+  make_is_dead_test "is dead right edge" [[58;6];[57;6];[56;6]] [(10,16)] true;
+  make_is_dead_test "is dead self hit" 
+    [[5;12];[5;13];[5;14];[4;14];[3;14];[3;13];[3;12];[4;12];[5;12];[6;12]]  
+    [(10,16)] true;
+  make_is_dead_test "is dead not dead" [[5;7];[5;6];[5;5]] [(10,16)] false;
+  make_is_dead_test "is dead bottom edge" [[5;25]] [(10,16)] true;
+  make_is_dead_test "is dead hit enemy" [[10;16]] [(10,16)] true;
 
-    (** tests for [time_delay snake]. *)
-    make_time_delay_test "time delay length 1" [[1;1]] 5;
-    make_time_delay_test "time delay length 2" [[1;1];[2;1]] 5;
-    make_time_delay_test "time delay length 11" [[1;1];[2;1];[3;1];[4;1];[5;1];
-        [6;1];[7;1];[8;1];[9;1];[10;1];[11;1]] 4;
-    make_time_delay_test "time delay length 21" [[1;1];[2;1];[3;1];[4;1];[5;1];
-        [6;1];[7;1];[8;1];[9;1];[10;1];[11;1];[12;1];[13;1];[14;1];[15;1];
-        [16;1];[17;1];[18;1];[19;1];[20;1];[21;1]] 3;
-    make_time_delay_test "time delay length 31"  [[1;1];[2;1];[3;1];[4;1];[5;1];
-        [6;1];[7;1];[8;1];[9;1];[10;1];[11;1];[12;1];[13;1];[14;1];[15;1];
-        [16;1];[17;1];[18;1];[19;1];[20;1];[21;1];[22;1];[23;1];[24;1];[25;1];
-        [26;1];[27;1];[28;1];[29;1];[30;1];[31;1]] 2;
-    make_time_delay_test "time delay length 41"  [[1;1];[2;1];[3;1];[4;1];[5;1];
-        [6;1];[7;1];[8;1];[9;1];[10;1];[11;1];[12;1];[13;1];[14;1];[15;1];
-        [16;1];[17;1];[18;1];[19;1];[20;1];[21;1];[22;1];[23;1];[24;1];[25;1];
-        [26;1];[27;1];[28;1];[29;1];[30;1];[31;1];[32;1];[33;1];[34;1];[35;1];
-        [36;1];[37;1];[38;1];[39;1];[40;1];[41;1]] 1;
+  (** tests for [time_delay snake]. *)
+  make_time_delay_test "time delay length 1" [[1;1]] 5;
+  make_time_delay_test "time delay length 2" [[1;1];[2;1]] 5;
+  make_time_delay_test "time delay length 11" [[1;1];[2;1];[3;1];[4;1];[5;1];
+                                               [6;1];[7;1];[8;1];[9;1];[10;1];[11;1]] 4;
+  make_time_delay_test "time delay length 21" [[1;1];[2;1];[3;1];[4;1];[5;1];
+                                               [6;1];[7;1];[8;1];[9;1];[10;1];[11;1];[12;1];[13;1];[14;1];[15;1];
+                                               [16;1];[17;1];[18;1];[19;1];[20;1];[21;1]] 3;
+  make_time_delay_test "time delay length 31"  [[1;1];[2;1];[3;1];[4;1];[5;1];
+                                                [6;1];[7;1];[8;1];[9;1];[10;1];[11;1];[12;1];[13;1];[14;1];[15;1];
+                                                [16;1];[17;1];[18;1];[19;1];[20;1];[21;1];[22;1];[23;1];[24;1];[25;1];
+                                                [26;1];[27;1];[28;1];[29;1];[30;1];[31;1]] 2;
+  make_time_delay_test "time delay length 41"  [[1;1];[2;1];[3;1];[4;1];[5;1];
+                                                [6;1];[7;1];[8;1];[9;1];[10;1];[11;1];[12;1];[13;1];[14;1];[15;1];
+                                                [16;1];[17;1];[18;1];[19;1];[20;1];[21;1];[22;1];[23;1];[24;1];[25;1];
+                                                [26;1];[27;1];[28;1];[29;1];[30;1];[31;1];[32;1];[33;1];[34;1];[35;1];
+                                                [36;1];[37;1];[38;1];[39;1];[40;1];[41;1]] 1;
 
-    (** tests for [is_opposite new_dir old_dir]. *)
-    make_is_opposite_test "is_opposite up down" Up Down true;
-    make_is_opposite_test "is_opposite up left" Up Left false;
-    make_is_opposite_test "is_opposite up right" Up Right false;
-    make_is_opposite_test "is_opposite left right" Left Right true;
-    make_is_opposite_test "is_opposite right left" Right Left true;
-    make_is_opposite_test "is_opposite down up" Down Up true;
-    make_is_opposite_test "is_opposite right up"  Right Up false;
+  (** tests for [is_opposite new_dir old_dir]. *)
+  make_is_opposite_test "is_opposite up down" Up Down true;
+  make_is_opposite_test "is_opposite up left" Up Left false;
+  make_is_opposite_test "is_opposite up right" Up Right false;
+  make_is_opposite_test "is_opposite left right" Left Right true;
+  make_is_opposite_test "is_opposite right left" Right Left true;
+  make_is_opposite_test "is_opposite down up" Down Up true;
+  make_is_opposite_test "is_opposite right up"  Right Up false;
 ]
 
 
@@ -192,46 +192,31 @@ let make_get_seg_xcorr_test
   name >:: (fun _ ->
       assert_equal expected_output (get_seg_xcorr seg))
 
-(** [make_update_h_score name old_sc new_sc expected_output] constructs an OUnit
-    test named [name] that asserts the equality of [expected_output] with 
-    [update_h_score old_sc new_sc]. *)
-let make_update_h_score
-    (name : string)
-    (old_sc : 'a)
-    (new_sc : 'a)
-    (expected_output : 'a) : test =
-  name >:: (fun _ ->
-    assert_equal expected_output (update_h_score old_sc new_sc))
-
 (** [display_tests is a list of OUnit tests for the functions in display.ml 
     using the above functions. *)
 let display_tests = [
-    (** tests for [whitespace num]. *)
-    make_whitespace_test "whitespace 0" 0 "";
-    make_whitespace_test "whitespace 1" 1 " ";
-    make_whitespace_test "whitespace 2" 2 "  ";
-    make_whitespace_test "whitespace 7" 7 "       ";
+  (** tests for [whitespace num]. *)
+  make_whitespace_test "whitespace 0" 0 "";
+  make_whitespace_test "whitespace 1" 1 " ";
+  make_whitespace_test "whitespace 2" 2 "  ";
+  make_whitespace_test "whitespace 7" 7 "       ";
 
-    (** tests for [get_snake_seg snake i]. *)
-    make_get_snake_seg_test "get_snake_seg 0" [[1;1]] 0 [1;1];
-    make_get_snake_seg_test "get_snake_seg 1" [[1;1];[2;2]] 1 [2;2];
-    make_get_snake_seg_test "get_snake_seg 0" [[1;1];[2;2]] 0 [1;1];
-    make_get_snake_seg_test "get_snake_seg 3" [[1;1];[2;2];[3;3];[4;4];[5;5]] 3 
-        [4;4];
+  (** tests for [get_snake_seg snake i]. *)
+  make_get_snake_seg_test "get_snake_seg 0" [[1;1]] 0 [1;1];
+  make_get_snake_seg_test "get_snake_seg 1" [[1;1];[2;2]] 1 [2;2];
+  make_get_snake_seg_test "get_snake_seg 0" [[1;1];[2;2]] 0 [1;1];
+  make_get_snake_seg_test "get_snake_seg 3" [[1;1];[2;2];[3;3];[4;4];[5;5]] 3 
+    [4;4];
 
-    (** tests for [get_seg_ycorr seg]. *)
-    make_get_seg_ycorr_test "get_seg_ycorr 2" [1;2] 2;
-    make_get_seg_ycorr_test "get_seg_ycorr 45" [5;45] 45;
-    make_get_seg_ycorr_test "get_seg_ycorr 50003" [5;50003] 50003;
+  (** tests for [get_seg_ycorr seg]. *)
+  make_get_seg_ycorr_test "get_seg_ycorr 2" [1;2] 2;
+  make_get_seg_ycorr_test "get_seg_ycorr 45" [5;45] 45;
+  make_get_seg_ycorr_test "get_seg_ycorr 50003" [5;50003] 50003;
 
-    (** tests for [get_seg_xcorr seg]. *)
-    make_get_seg_xcorr_test "get_seg_xcorr 1" [1;2] 1;
-    make_get_seg_xcorr_test "get_seg_xcorr 78" [78;23] 78;
-    make_get_seg_xcorr_test "get_seg_xcorr 12345" [12345; 203] 12345;
-
-    (** tests for [update_h_score old_sc new_sc]. *)
-    make_update_h_score "higher old score" 43 42 43;
-    make_update_h_score "higher new score" 42 43 43;
+  (** tests for [get_seg_xcorr seg]. *)
+  make_get_seg_xcorr_test "get_seg_xcorr 1" [1;2] 1;
+  make_get_seg_xcorr_test "get_seg_xcorr 78" [78;23] 78;
+  make_get_seg_xcorr_test "get_seg_xcorr 12345" [12345; 203] 12345;
 
 ]
 
@@ -247,7 +232,7 @@ let make_apple_extent_test
     (power : int)
     (expected_output : (int * int) list) : test =
   name >:: (fun _ ->
-    assert_equal expected_output (apple_extent apple power))
+      assert_equal expected_output (apple_extent apple power))
 
 (** [make_check_conflicts_test name snake apple apple_power enemies expected_output]
     constructs an OUnit test named [name] that asserts the equality of 
@@ -260,8 +245,8 @@ let make_check_conflicts_test
     (enemies : ('a * 'a) list)
     (expected_output : bool) : test = 
   name >:: (fun _ -> 
-    assert_equal expected_output 
-      (check_conflicts snake apple apple_power enemies))
+      assert_equal expected_output 
+        (check_conflicts snake apple apple_power enemies))
 
 (** [make_check_apple_conflicts_test name snake enemies apple_pos apple_power 
     expected_output] constructs an OUnit test named [name] that asserts the 
@@ -275,35 +260,35 @@ let make_check_apple_conflicts_test
     (apple_power : int) 
     (expected_output : bool ): test =
   name >:: (fun _ ->
-    assert_equal expected_output (check_apple_conflicts snake enemies apple_pos 
-        apple_power))
+      assert_equal expected_output (check_apple_conflicts snake enemies apple_pos 
+                                      apple_power))
 
 (** [enemies_tests] is a list of OUnit tests for the functions in enemies.ml 
     using the above functions. *)
 let enemies_tests = [
-    (** tests for [apple_extent apple power]. *)
-    make_apple_extent_test "power 4" (3,3) 4 [(3,3)];
-    make_apple_extent_test "power 6" (3,3) 4 [(3,3)];
-    make_apple_extent_test "power 8" (3,3) 8 [(3,3);(4,3)];
-    make_apple_extent_test "power 10" (3,3) 10 [(3,3);(4,3);(2,3);(3,2);(3,4)];
-    make_apple_extent_test "power 12" (3,3) 12 [(3,3); (4,3); (2,3);(3,2);(3,4)];
+  (** tests for [apple_extent apple power]. *)
+  make_apple_extent_test "power 4" (3,3) 4 [(3,3)];
+  make_apple_extent_test "power 6" (3,3) 4 [(3,3)];
+  make_apple_extent_test "power 8" (3,3) 8 [(3,3);(4,3)];
+  make_apple_extent_test "power 10" (3,3) 10 [(3,3);(4,3);(2,3);(3,2);(3,4)];
+  make_apple_extent_test "power 12" (3,3) 12 [(3,3); (4,3); (2,3);(3,2);(3,4)];
 
-    (** tests for [check_conflicts snake apple apple_power enemies]. *)
-    make_check_conflicts_test "no conflict" [[1;1]] (2,2) 4 [(3,3)] false;
-    make_check_conflicts_test "conflict with snake" [[3;3]] (2,2) 4 [(3,3)] true;
-    make_check_conflicts_test "conflict with apple" [[1;1]] (3,3)4  [(3,3)] true;
+  (** tests for [check_conflicts snake apple apple_power enemies]. *)
+  make_check_conflicts_test "no conflict" [[1;1]] (2,2) 4 [(3,3)] false;
+  make_check_conflicts_test "conflict with snake" [[3;3]] (2,2) 4 [(3,3)] true;
+  make_check_conflicts_test "conflict with apple" [[1;1]] (3,3)4  [(3,3)] true;
 
-    (** tests for [check_apple_conflicts snake enemies apple_pos apple_power]. *)
-    make_check_apple_conflicts_test "no conflict" [[8;8]] [(10,10)] (12,12) 4 
-        false;
-    make_check_apple_conflicts_test "conflict with snake" [[8;8]] [(10,10)] 
-        (8,8) 4 true;
-    make_check_apple_conflicts_test "conflict with enemies" [[8;8]] [(10,10)] 
-        (10,10) 4 true;
-    make_check_apple_conflicts_test "conflict with enemies apple_power 10"
-        [[8;8]] [(10,10)] (11,10) 10 true;
-    make_check_apple_conflicts_test "conflict with snake apple_power 12"
-        [[8;8]] [(12,12)] (8,7) 12 true;
+  (** tests for [check_apple_conflicts snake enemies apple_pos apple_power]. *)
+  make_check_apple_conflicts_test "no conflict" [[8;8]] [(10,10)] (12,12) 4 
+    false;
+  make_check_apple_conflicts_test "conflict with snake" [[8;8]] [(10,10)] 
+    (8,8) 4 true;
+  make_check_apple_conflicts_test "conflict with enemies" [[8;8]] [(10,10)] 
+    (10,10) 4 true;
+  make_check_apple_conflicts_test "conflict with enemies apple_power 10"
+    [[8;8]] [(10,10)] (11,10) 10 true;
+  make_check_apple_conflicts_test "conflict with snake apple_power 12"
+    [[8;8]] [(12,12)] (8,7) 12 true;
 ]
 
 let tests = 
