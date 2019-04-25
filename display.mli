@@ -33,4 +33,4 @@ val update_h_score : int -> int -> int
 (** [game_over snake h_score] prints a game over box with current score and 
     history highest score over the last game board and resets terminal to 
     original state before the game started. *)
-val game_over : int list list -> int -> unit
+val game_over : int list list -> unit

@@ -142,7 +142,7 @@ let update_ath_score curr_sc =
     close_out outf; 
     curr_sc
 
-let game_over snake h_score = 
+let game_over snake = 
   let pos = (ter_wid, ter_hei) in
   let box_w = 30 in 
   let box_h = 5 in 
@@ -173,7 +173,7 @@ let game_over snake h_score =
   (*put this back in if we implement losing segments*)
   set_cursor (width/2 - 11) (height/2 + (box_h/2 + 2));
   print_string[blue] ("All Time High Score: " ^ string_of_int 
-    all_time_high_score);
+                        all_time_high_score);
   set_cursor (fst pos) ((snd pos)+4);
 
   reset_terminal()

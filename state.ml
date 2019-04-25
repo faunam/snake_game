@@ -120,15 +120,15 @@ let is_opposite new_dir old_dir =
 
 let play_game () =
   let snake = [[width/2; height/2]] in
-  let apple = produce_random_pos () in
-  let apple_power = 4 + if Random.int 6 == 1 then 9 else 0 in
+  let seed = make_apple snake [] in 
+  let apple = fst seed in
+  let ap_power = snd seed in
 
-  make_board width height snake apple apple_power [];
+  make_board width height snake apple ap_power [];
 
   (* [grow] is the number of iterations the snake should grow, incremented (by 2) 
      by eating an apple. decreases by one each turn the snake grows.*)
-  let rec play n_snake n_apple (apple_power:int) old_dir 
-      (grow:int) enemies h_score= 
+  let rec play n_snake n_apple (apple_power:int) old_dir (grow:int) enemies = 
     let will_grow = grow > 0 in
     (try
        (let input = receive_input n_snake in
@@ -139,10 +139,8 @@ let play_game () =
           let new_grow = 
             (if check_eat n_apple apple_power new_snake then apple_power/2 
              else 0) + (if grow>0 then grow-1 else grow) in
-          let new_h_sc = update_h_score h_score (List.length new_snake) in 
-          if is_dead new_snake enemies then game_over new_snake new_h_sc
-          else play new_snake new_apple new_apple_power input new_grow enemies' 
-              new_h_sc)
+          if is_dead new_snake enemies then game_over new_snake
+          else play new_snake new_apple new_apple_power input new_grow enemies')
      with
      |exp -> (let input = old_dir in 
               let (new_snake, new_apple, new_apple_power, enemies') = 
@@ -150,11 +148,10 @@ let play_game () =
               let new_grow = 
                 (if check_eat n_apple apple_power new_snake then apple_power/2 
                  else 0) + (if grow>0 then grow-1 else grow) in
-              let new_h_sc = update_h_score h_score (List.length new_snake) in 
-              if is_dead new_snake enemies then game_over new_snake new_h_sc
+              if is_dead new_snake enemies then game_over new_snake
               else 
                 play new_snake new_apple new_apple_power input new_grow enemies' 
-                  new_h_sc))
+             ))
   in 
-  play snake apple apple_power Left 0 
-    (make_enemies snake apple 4 true []) 4
+  play snake apple ap_power Left 0 
+    (make_enemies snake apple 4 true [])
