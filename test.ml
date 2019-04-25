@@ -124,19 +124,31 @@ let state_tests = [
   make_time_delay_test "time delay length 1" [[1;1]] 5;
   make_time_delay_test "time delay length 2" [[1;1];[2;1]] 5;
   make_time_delay_test "time delay length 11" [[1;1];[2;1];[3;1];[4;1];[5;1];
-                                               [6;1];[7;1];[8;1];[9;1];[10;1];[11;1]] 4;
+                                               [6;1];[7;1];[8;1];[9;1];[10;1];
+                                               [11;1]] 4;
   make_time_delay_test "time delay length 21" [[1;1];[2;1];[3;1];[4;1];[5;1];
-                                               [6;1];[7;1];[8;1];[9;1];[10;1];[11;1];[12;1];[13;1];[14;1];[15;1];
-                                               [16;1];[17;1];[18;1];[19;1];[20;1];[21;1]] 3;
+                                               [6;1];[7;1];[8;1];[9;1];[10;1];
+                                               [11;1];[12;1];[13;1];[14;1];
+                                               [15;1];[16;1];[17;1];[18;1];
+                                               [19;1];[20;1];[21;1]] 3;
   make_time_delay_test "time delay length 31"  [[1;1];[2;1];[3;1];[4;1];[5;1];
-                                                [6;1];[7;1];[8;1];[9;1];[10;1];[11;1];[12;1];[13;1];[14;1];[15;1];
-                                                [16;1];[17;1];[18;1];[19;1];[20;1];[21;1];[22;1];[23;1];[24;1];[25;1];
-                                                [26;1];[27;1];[28;1];[29;1];[30;1];[31;1]] 2;
+                                                [6;1];[7;1];[8;1];[9;1];[10;1];
+                                                [11;1];[12;1];[13;1];[14;1];
+                                                [15;1];[16;1];[17;1];[18;1];
+                                                [19;1];[20;1];[21;1];[22;1];
+                                                [23;1];[24;1];[25;1];[26;1];
+                                                [27;1];[28;1];[29;1];[30;1];
+                                                [31;1]] 2;
   make_time_delay_test "time delay length 41"  [[1;1];[2;1];[3;1];[4;1];[5;1];
-                                                [6;1];[7;1];[8;1];[9;1];[10;1];[11;1];[12;1];[13;1];[14;1];[15;1];
-                                                [16;1];[17;1];[18;1];[19;1];[20;1];[21;1];[22;1];[23;1];[24;1];[25;1];
-                                                [26;1];[27;1];[28;1];[29;1];[30;1];[31;1];[32;1];[33;1];[34;1];[35;1];
-                                                [36;1];[37;1];[38;1];[39;1];[40;1];[41;1]] 1;
+                                                [6;1];[7;1];[8;1];[9;1];[10;1];
+                                                [11;1];[12;1];[13;1];[14;1];
+                                                [15;1];[16;1];[17;1];[18;1];
+                                                [19;1];[20;1];[21;1];[22;1];
+                                                [23;1];[24;1];[25;1];[26;1];
+                                                [27;1];[28;1];[29;1];[30;1];
+                                                [31;1];[32;1];[33;1];[34;1];
+                                                [35;1];[36;1];[37;1];[38;1];
+                                                [39;1];[40;1];[41;1]] 1;
 
   (** tests for [is_opposite new_dir old_dir]. *)
   make_is_opposite_test "is_opposite up down" Up Down true;
@@ -234,9 +246,10 @@ let make_apple_extent_test
   name >:: (fun _ ->
       assert_equal expected_output (apple_extent apple power))
 
-(** [make_check_conflicts_test name snake apple apple_power enemies expected_output]
-    constructs an OUnit test named [name] that asserts the equality of 
-    [expected_output] with [check_conflicts snake apple apple_power enemies]. *)
+(** [make_check_conflicts_test name snake apple apple_power enemies 
+    expected_output] constructs an OUnit test named [name] that asserts the 
+    equality of [expected_output] with [check_conflicts snake apple apple_power
+     enemies]. *)
 let make_check_conflicts_test
     (name : string)
     (snake : 'a list list)
@@ -260,8 +273,8 @@ let make_check_apple_conflicts_test
     (apple_power : int) 
     (expected_output : bool ): test =
   name >:: (fun _ ->
-      assert_equal expected_output (check_apple_conflicts snake enemies apple_pos 
-                                      apple_power))
+      assert_equal expected_output (check_apple_conflicts snake enemies 
+                                    apple_pos apple_power))
 
 (** [enemies_tests] is a list of OUnit tests for the functions in enemies.ml 
     using the above functions. *)
@@ -274,7 +287,7 @@ let enemies_tests = [
   make_apple_extent_test "power 12" (3,3) 12 [(3,3); (4,3); (2,3);(3,2);(3,4)];
 
   (** tests for [check_conflicts snake apple apple_power enemies]. *)
-  make_check_conflicts_test "no conflict" [[1;1]] (2,2) 4 [(3,3)] false;
+  make_check_conflicts_test "no conflict" [[1;1]] (4,4) 4 [(6,6)] false;
   make_check_conflicts_test "conflict with snake" [[3;3]] (2,2) 4 [(3,3)] true;
   make_check_conflicts_test "conflict with apple" [[1;1]] (3,3)4  [(3,3)] true;
 
