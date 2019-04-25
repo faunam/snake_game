@@ -26,10 +26,6 @@ val make_apple : int list list -> (int * int) list -> (int * int) * int
 val make_board : int -> int -> int list list -> int * int -> int 
   -> (int * int) list -> unit
 
-(** [update_h_score old_sc new_sc] is the higher score between [old_sc] and
-    [new_sc].*)
-val update_h_score : int -> int -> int
-
 (** [game_over snake h_score] prints a game over box with current score and 
     history highest score over the last game board and resets terminal to 
     original state before the game started. *)
