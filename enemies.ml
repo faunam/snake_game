@@ -79,4 +79,4 @@ let check_apple_conflicts snake enemies apple_pos apple_power  =
       || List.mem (x, y+1) enemies || List.mem (x, y-1) enemies || 
       List.mem snk_h snake || x <= 1 || x >= width ||  y <= 4 || y == ter_hei-1
       || check_apple t enemies  in 
-  check_apple apple_extent enemies
+      check_apple apple_extent enemies
